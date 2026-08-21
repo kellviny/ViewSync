@@ -59,6 +59,7 @@
       "output": "release"
     },
     "win": {
+      "artifactName": "${productName}-${version}-win-${arch}.${ext}",
       "target": [
         "nsis",
         "portable"
@@ -66,6 +67,7 @@
       "icon": "public/ico.ico"
     },
     "mac": {
+      "artifactName": "${productName}-${version}-mac-${arch}.${ext}",
       "target": [
         { "target": "dmg", "arch": ["arm64"] }
       ],
