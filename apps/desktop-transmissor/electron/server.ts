@@ -1,175 +1,241 @@
 import express from 'express'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
-import os from 'node:os'
 import path from 'node:path'
-import * as mediasoup from 'mediasoup'
+import {
+  APP_ROOT,
+  HTTP_PORT,
+  IS_PACKAGED,
+  RENDERER_DIST,
+  RESOURCES_PATH,
+  RTC_MAX_PORT,
+  RTC_MIN_PORT,
+} from './signaling/config'
+import { getNetworkDetails, getAllNetworkInterfaces } from './signaling/network'
+import { RoomSessionState } from './signaling/RoomSessionState'
+import { MediasoupEngine } from './signaling/MediasoupEngine'
+import type {
+  ConnectWebRtcTransportPayload,
+  ConsumePayload,
+  HostStartStreamPayload,
+  ProducePayload,
+  ResumePayload,
+  ViewerJoinPayload,
+} from './signaling/types'
 
-const port = 3000
-const RENDERER_DIST = process.env.RENDERER_DIST || ''
-const APP_ROOT = process.env.APP_ROOT || ''
-const IS_PACKAGED = process.env.IS_PACKAGED === 'true'
-const RESOURCES_PATH = process.env.RESOURCES_PATH || ''
+const ENROLLMENT_PATTERN = /^(\d{4})(\d{3})([A-Z]{4})(\d{4})$/
+const SUSPICIOUS_NAME_PATTERN = /\b(teste|test|asdf|qwerty|admin|usuario|nome|zoado)\b/i
 
-function getNetworkDetails() {
-  const interfaces = os.networkInterfaces()
-  for (const name in interfaces) {
-    for (const iface of interfaces[name]!) {
-      if (iface.family === 'IPv4' && !iface.internal) {
-        return { ip: iface.address, network: name }
-      }
-    }
-  }
-  return { ip: 'localhost', network: 'Desconhecida' }
+const normalizeName = (name: string): string => name.replace(/\s+/g, ' ').trim()
+
+const isValidEnrollment = (input: string): boolean => {
+  if (!input) return false
+  if (input.startsWith('VIS-')) return true
+  const match = input.match(ENROLLMENT_PATTERN)
+  if (!match) return false
+
+  const enrollmentYear = Number(match[1])
+  const currentYear = new Date().getFullYear()
+  return enrollmentYear >= 1900 && enrollmentYear <= currentYear
 }
 
-const mediaCodecs: mediasoup.types.RtpCodecCapability[] = [
-  {
-    kind: 'video',
-    mimeType: 'video/VP8',
-    clockRate: 90000,
-    preferredPayloadType: 101,
-    parameters: { 
-      'x-google-start-bitrate': 1000,
-      'x-google-max-bitrate': 5000 
-    }
-  }
-]
-
-let worker: mediasoup.types.Worker
-let router: mediasoup.types.Router
-const transports = new Map<string, mediasoup.types.WebRtcTransport>()
-const producers = new Map<string, mediasoup.types.Producer>()
-const consumers = new Map<string, mediasoup.types.Consumer>()
-
-const createWorker = async () => {
-  worker = await mediasoup.createWorker({
-    rtcMinPort: 40000,
-    rtcMaxPort: 41000,
-    logLevel: 'warn',
-  })
-  worker.on('died', () => {
-    process.exit(1)
-  })
-  router = await worker.createRouter({ mediaCodecs })
-}
-
-const createWebRtcTransport = async () => {
-  const ip = getNetworkDetails().ip;
-  
-  const transport = await router.createWebRtcTransport({
-    listenIps: [
-      { ip: '0.0.0.0', announcedIp: ip },
-      { ip: '0.0.0.0', announcedIp: '127.0.0.1' }
-    ],
-    enableUdp: true,
-    enableTcp: true,
-    preferUdp: true,
-  })
-
-  transport.on('dtlsstatechange', dtlsState => { 
-    if (dtlsState === 'closed') transport.close();
-  })
-
-  transports.set(transport.id, transport)
-  return transport
+const isValidName = (input: string): boolean => {
+  if (input.length < 3) return false
+  if (!/^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$/.test(input)) return false
+  if (!/[AEIOUaeiouÀ-ÖØ-öø-ÿ]/.test(input)) return false
+  if (/(.)\1{3,}/.test(input)) return false
+  if (SUSPICIOUS_NAME_PATTERN.test(input)) return false
+  return true
 }
 
 const startServer = async () => {
-  await createWorker()
+  const mediasoupEngine = new MediasoupEngine()
+  const roomSessionState = new RoomSessionState()
+
+  await mediasoupEngine.initialize(RTC_MIN_PORT, RTC_MAX_PORT)
+  void getNetworkDetails().catch(() => undefined)
 
   const expressApp = express()
   const httpServer = createServer(expressApp)
+
   const io = new Server(httpServer, {
     cors: { origin: '*' },
     perMessageDeflate: false,
     maxHttpBufferSize: 1e7
   })
 
-  const viewerPath = IS_PACKAGED
-    ? path.join(RESOURCES_PATH, 'viewer')
-    : path.join(APP_ROOT, '../viewer-web/out');
+  if (IS_PACKAGED) {
+    // Produção: serve o viewer buildado que está dentro do bundle do app
+    const viewerPath = path.join(RESOURCES_PATH, 'viewer')
+    expressApp.get('/admin', (_req, res) => res.sendFile(path.join(viewerPath, 'admin.html')))
+    expressApp.get('/admin/', (_req, res) => res.sendFile(path.join(viewerPath, 'admin.html')))
+    expressApp.use(express.static(viewerPath, { extensions: ['html'] }))
+  } else {
+    // Dev: o viewer-web/out pode não existir ainda (não buildado).
+    // Verifica se existe; se existir, serve estático. Caso contrário, faz proxy
+    // para o Vite dev server do viewer-web (porta 5174) se estiver rodando,
+    // ou redireciona para a porta padrão do Next.js (3001).
+    const outPath = path.join(APP_ROOT, '../viewer-web/out')
+    const fs = await import('node:fs')
+    if (fs.existsSync(outPath)) {
+      const setHeaders = (res: any, path: string) => {
+        if (path.endsWith('.html')) {
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+          res.setHeader('Pragma', 'no-cache')
+          res.setHeader('Expires', '0')
+        }
+      }
 
-  expressApp.use(express.static(viewerPath));
-  expressApp.use('/studio', express.static(RENDERER_DIST));
-
-  const roomState = { isStreaming: false, connectedCount: 0, activeViewersCount: 0, config: null as any }
-  let currentHostId: string | null = null
-  let roomPassword = ''
-  const activeViewers = new Set<string>()
+      expressApp.get('/admin', (_req, res) => {
+        setHeaders(res, 'admin.html')
+        res.sendFile(path.join(outPath, 'admin.html'))
+      })
+      expressApp.get('/admin/', (_req, res) => {
+        setHeaders(res, 'admin.html')
+        res.sendFile(path.join(outPath, 'admin.html'))
+      })
+      expressApp.get('/', (_req, res) => {
+        setHeaders(res, 'index.html')
+        res.sendFile(path.join(outPath, 'index.html'))
+      })
+      expressApp.use(express.static(outPath, { extensions: ['html'], setHeaders }))
+    } else {
+      // Viewer não buildado em dev: exibe mensagem amigável
+      expressApp.get('*', (_req, res) => {
+        res.send(`
+          <!DOCTYPE html>
+          <html lang="pt-BR">
+          <head><meta charset="UTF-8"><title>ViewSync – Dev Mode</title>
+          <style>body{font-family:monospace;background:#0a0a0f;color:#a0a0b0;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;flex-direction:column;gap:16px;}</style>
+          </head>
+          <body>
+            <p style="color:#6366F1;font-size:1.2em;font-weight:bold;">ViewSync Studio — Modo Dev</p>
+            <p>Viewer web não buildado. Rode em outro terminal:</p>
+            <pre style="background:#111;padding:12px;border-radius:8px;color:#22D3EE;">cd apps/viewer-web && npm run build</pre>
+            <p style="font-size:0.8em;color:#555;">Ou acesse o Next.js diretamente se estiver rodando.</p>
+          </body>
+          </html>
+        `)
+      })
+    }
+  }
+  expressApp.use('/studio', express.static(RENDERER_DIST))
 
   const broadcastState = () => {
-    const totalSockets = io.engine.clientsCount
-    const actualViewersCount = currentHostId ? Math.max(0, totalSockets - 1) : totalSockets
-    
-    io.emit('room:state_update', { 
-      ...roomState, 
-      connectedCount: actualViewersCount,
-      activeViewersCount: activeViewers.size,
-      hostId: currentHostId 
-    })
+    const state = roomSessionState.buildPublicState()
+    io.emit('room:state_update', state)
   }
 
-  io.on('connection', (socket) => {
-    const net = getNetworkDetails()
-    socket.emit('server:info', { ip: net.ip, network: net.network, port })
+  let currentNet = await getNetworkDetails()
+
+  io.on('connection', async (socket) => {
+    roomSessionState.onSocketConnected(socket.id)
+
+    const allInterfaces = getAllNetworkInterfaces()
+    socket.emit('server:info', {
+      ip: currentNet.ip,
+      network: currentNet.network,
+      port: HTTP_PORT,
+      interfaces: allInterfaces,
+      adminToken: roomSessionState.getAdminToken()
+    })
     broadcastState()
 
     socket.on('disconnect', () => {
-      activeViewers.delete(socket.id)
-      if (socket.id === currentHostId) {
-        currentHostId = null; 
-        roomState.isStreaming = false; 
-        roomState.config = null; 
+      const identity = roomSessionState.getViewerIdentity(socket.id)
+      if (identity) {
+        console.info(
+          `[Viewer saiu] matrícula=${identity.enrollment} nome="${identity.name}" socket=${socket.id}`
+        )
       }
+
+      roomSessionState.onSocketDisconnect(socket.id)
       broadcastState()
     })
 
-    socket.on('host:start_stream', (payload) => {
-      currentHostId = socket.id; 
-      activeViewers.delete(socket.id);
-      roomPassword = payload.password || ''; 
-      roomState.isStreaming = true; 
-      roomState.config = payload.config
+    socket.on('host:start_stream', (payload: HostStartStreamPayload, callback?: (res: { adminToken: string }) => void) => {
+      roomSessionState.onHostStartStream(socket.id, payload)
+      if (callback) {
+        callback({ adminToken: roomSessionState.getAdminToken() })
+      }
       broadcastState()
     })
 
     socket.on('host:stop_stream', () => {
-      if (socket.id === currentHostId) {
-        currentHostId = null; roomState.isStreaming = false; roomState.config = null;
+      const stopResult = roomSessionState.onHostStopStream(socket.id)
+      if (stopResult) {
+        if (stopResult.report) {
+          socket.emit('host:stream_report', stopResult.report)
+        }
         broadcastState()
       }
     })
 
-    socket.on('viewer:join', (payload) => {
-      if (roomState.config?.hasPassword && payload.password !== roomPassword) {
-        socket.emit('error', 'Senha incorreta.'); return
+    socket.on('host:set_network', (payload: { ip: string; network: string }) => {
+      // Allow only if we are not streaming
+      if (roomSessionState.buildPublicState().isStreaming) return
+      currentNet = payload
+      io.emit('server:info', {
+        ip: currentNet.ip,
+        network: currentNet.network,
+        port: HTTP_PORT,
+        interfaces: getAllNetworkInterfaces()
+      })
+    })
+
+    socket.on('admin:join', (payload: { token: string }, callback) => {
+      if (roomSessionState.getAdminToken() === payload.token) {
+        callback({ success: true, state: roomSessionState.buildPublicState() })
+      } else {
+        callback({ success: false, error: 'Token inválido ou sala não iniciada.' })
       }
+    })
+
+    socket.on('viewer:join', (payload: ViewerJoinPayload) => {
+      const enrollment = payload.viewerEnrollment?.trim().toUpperCase() || ''
+      const name = normalizeName(payload.viewerName || '')
+
+      if (!isValidEnrollment(enrollment)) {
+        socket.emit('error', 'Matrícula inválida. Use o padrão AAAA999LLLL9999.')
+        return
+      }
+
+      if (!isValidName(name)) {
+        socket.emit('error', 'Nome inválido. Informe seu nome real para continuar.')
+        return
+      }
+
+      if (!roomSessionState.isViewerAuthorized(payload)) {
+        socket.emit('error', 'Senha incorreta.')
+        return
+      }
+
+      roomSessionState.registerViewerIdentity(socket.id, enrollment, name)
+
+      console.info(
+        `[Viewer entrou] matrícula=${enrollment} nome="${name}" socket=${socket.id}`
+      )
+
       socket.emit('viewer:authorized')
+      broadcastState()
     })
 
     socket.on('viewer:visibility_change', async (isVisible) => {
-      if (socket.id === currentHostId) return;
+      if (roomSessionState.isHostSocket(socket.id)) return
 
       try {
-        if (isVisible) activeViewers.add(socket.id); 
-        else activeViewers.delete(socket.id);
-        
-        for (const consumer of consumers.values()) {
-          if (socket.id === consumer.appData.socketId) {
-            if (consumer.closed) continue;
-            if (isVisible) await consumer.resume().catch(() => {});
-            else await consumer.pause().catch(() => {});
-          }
-        }
+        roomSessionState.setViewerVisibility(socket.id, Boolean(isVisible))
+        await mediasoupEngine.syncViewerVisibility(socket.id, Boolean(isVisible))
         broadcastState()
-      } catch (err) {}
+      } catch {}
     })
 
-    socket.on('mediasoup:getRouterRtpCapabilities', (callback) => callback(router.rtpCapabilities))
+    socket.on('mediasoup:getRouterRtpCapabilities', (callback) =>
+      callback(mediasoupEngine.getRouterRtpCapabilities())
+    )
 
-    socket.on('mediasoup:createWebRtcTransport', async ({ direction: _direction }, callback) => {
-      const transport = await createWebRtcTransport()
+    socket.on('mediasoup:createWebRtcTransport', async (_: { direction?: string }, callback) => {
+      const transport = await mediasoupEngine.createWebRtcTransport(currentNet.ip)
       callback({
         id: transport.id,
         iceParameters: transport.iceParameters,
@@ -178,40 +244,44 @@ const startServer = async () => {
       })
     })
 
-    socket.on('mediasoup:connectWebRtcTransport', async ({ transportId, dtlsParameters }, callback) => {
-      const transport = transports.get(transportId)
-      if (transport) { await transport.connect({ dtlsParameters }); callback() }
+    socket.on('mediasoup:connectWebRtcTransport', async (
+      payload: ConnectWebRtcTransportPayload,
+      callback: () => void
+    ) => {
+      await mediasoupEngine.connectWebRtcTransport(payload)
+      callback()
     })
 
-    socket.on('mediasoup:produce', async ({ transportId, kind, rtpParameters }, callback) => {
-      const transport = transports.get(transportId)
-      if (transport) {
-        const producer = await transport.produce({ kind: kind as any, rtpParameters: rtpParameters as any })
-        producers.set(producer.id, producer)
-        producer.on('transportclose', () => { producer.close(); producers.delete(producer.id) })
-        callback({ id: producer.id })
-        socket.broadcast.emit('mediasoup:newProducer', { producerId: producer.id })
-      }
+    socket.on('mediasoup:produce', async (
+      payload: ProducePayload,
+      callback: (p: { id: string }) => void
+    ) => {
+      const producerId = await mediasoupEngine.produce(payload)
+      if (!producerId) return
+
+      callback({ id: producerId })
+      socket.broadcast.emit('mediasoup:newProducer', { producerId })
     })
 
-    socket.on('mediasoup:consume', async ({ transportId, producerId, rtpCapabilities }, callback) => {
-      if (!router.canConsume({ producerId, rtpCapabilities })) return
-      const transport = transports.get(transportId)
-      if (transport) {
-        const consumer = await transport.consume({ producerId, rtpCapabilities, paused: true, appData: { socketId: socket.id } })
-        consumers.set(consumer.id, consumer)
-        consumer.on('transportclose', () => { consumer.close(); consumers.delete(consumer.id) })
-        callback({ id: consumer.id, producerId: consumer.producerId, kind: consumer.kind, rtpParameters: consumer.rtpParameters })
-      }
+    socket.on('mediasoup:consume', async (
+      payload: ConsumePayload,
+      callback: (p: object) => void
+    ) => {
+      const consumer = await mediasoupEngine.consume(socket.id, payload)
+      if (!consumer) return
+      callback(consumer)
     })
 
-    socket.on('mediasoup:resume', async ({ transportId: _transportId, consumerId }, callback) => {
-      const consumer = consumers.get(consumerId)
-      if (consumer) { await consumer.resume(); callback() }
+    socket.on('mediasoup:resume', async (
+      payload: ResumePayload,
+      callback: () => void
+    ) => {
+      await mediasoupEngine.resume(payload)
+      callback()
     })
   })
 
-  httpServer.listen(port, '0.0.0.0', () => {});
+  httpServer.listen(HTTP_PORT, '0.0.0.0')
 }
 
-startServer();
+startServer()

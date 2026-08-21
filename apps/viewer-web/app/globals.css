@@ -1,5 +1,117 @@
+/* ============================================================
+   ViewSync Viewer — Design System
+   Style: Cyberpunk UI + Glassmorphism | Mode: OLED Dark
+   Fonts: Fira Code + Fira Sans (local via @fontsource)
+   ============================================================ */
+
+@import '@fontsource/fira-code/400.css';
+@import '@fontsource/fira-code/600.css';
+@import '@fontsource/fira-sans/400.css';
+@import '@fontsource/fira-sans/500.css';
+@import '@fontsource/fira-sans/700.css';
+
 @import "tailwindcss";
 
-body {
-  @apply bg-[#0f172a] text-gray-200 m-0 p-0 overflow-hidden font-sans;
+:root {
+  --vs-bg-base:       #0A0A0F;
+  --vs-bg-surface:    #0F0F1A;
+  --vs-bg-card:       rgba(255,255,255,0.04);
+  --vs-accent:        #6366F1;
+  --vs-accent-dim:    rgba(99,102,241,0.18);
+  --vs-accent-glow:   rgba(99,102,241,0.4);
+  --vs-neon:          #818CF8;
+  --vs-live:          #22C55E;
+  --vs-live-glow:     rgba(34,197,94,0.35);
+  --vs-danger:        #F43F5E;
+  --vs-text:          #F1F5F9;
+  --vs-text-muted:    #64748B;
+  --vs-border:        rgba(255,255,255,0.07);
+  --vs-border-accent: rgba(99,102,241,0.3);
+  --font-body:        'Fira Sans', system-ui, sans-serif;
+  --font-mono:        'Fira Code', monospace;
 }
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--vs-bg-base);
+  color: var(--vs-text);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--vs-accent-dim); color: var(--vs-text); }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--vs-border); border-radius: 99px; }
+
+/* Glass utility */
+.glass {
+  background: var(--vs-bg-card);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--vs-border);
+}
+
+/* Neon text */
+.neon-text { color: var(--vs-neon); text-shadow: 0 0 10px var(--vs-accent-glow); }
+.live-text  { color: var(--vs-live); text-shadow: 0 0 10px var(--vs-live-glow); }
+
+/* Animations */
+@keyframes vs-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes vs-scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes vs-glow-orbit {
+  0%   { transform: rotate(0deg) translateX(40px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(40px) rotate(-360deg); }
+}
+@keyframes vs-ambient {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50%       { opacity: 0.7; transform: scale(1.05); }
+}
+@keyframes vs-pulse-ring {
+  0%   { box-shadow: 0 0 0 0 var(--vs-live-glow); }
+  70%  { box-shadow: 0 0 0 10px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+@keyframes vs-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.animate-fade-up    { animation: vs-fade-up 0.5s ease-out both; }
+.animate-scale-in   { animation: vs-scale-in 0.35s ease-out both; }
+.animate-ambient    { animation: vs-ambient 4s ease-in-out infinite; }
+.animate-pulse-ring { animation: vs-pulse-ring 2s ease-out infinite; }
+.shimmer {
+  background: linear-gradient(90deg, var(--vs-bg-surface) 25%, #1E1E30 50%, var(--vs-bg-surface) 75%);
+  background-size: 200% 100%;
+  animation: vs-shimmer 1.5s ease-in-out infinite;
+}
+
+/* Input premium */
+.vs-input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--vs-border);
+  border-radius: 0.875rem;
+  color: var(--vs-text);
+  padding: 0.875rem 1rem;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.vs-input:focus {
+  border-color: var(--vs-accent);
+  box-shadow: 0 0 0 3px var(--vs-accent-dim);
+}
+.vs-input::placeholder { color: var(--vs-text-muted); opacity: 0.5; }

@@ -6,7 +6,10 @@ node_modules
 # Build Outputs
 dist
 dist-electron
-build
+# Não ignorar a pasta build/ do desktop-transmissor (contém entitlements .plist)
+# Ignorar apenas outputs de build específicos:
+apps/viewer-web/.next
+apps/viewer-web/out
 out
 .next
 release

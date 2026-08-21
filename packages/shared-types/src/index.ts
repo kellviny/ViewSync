@@ -41,3 +41,49 @@ export interface ServerToClientEvents {
   "server:info": (data: { ip: string, network: string, port: number }) => void;
   "viewer:authorized": () => void;
 }
+
+// ── Validações Centralizadas ──
+export const ENROLLMENT_PATTERN = /^(\d{4})(\d{3})([A-Z]{4})(\d{4})$/
+export const SUSPICIOUS_NAME_PATTERN = /\b(teste|test|asdf|qwerty|admin|usuario|nome|zoado)\b/i
+
+export const normalizeName = (input: string): string => input.replace(/\s+/g, ' ').trim()
+
+export const validateEnrollment = (input: string): string | null => {
+  const value = input.trim().toUpperCase()
+  const match = value.match(ENROLLMENT_PATTERN)
+
+  if (!match) {
+    return 'Matrícula inválida. Use o padrão AAAA999LLLL9999'
+  }
+
+  const enrollmentYear = Number(match[1])
+  const currentYear = new Date().getFullYear()
+
+  if (enrollmentYear > currentYear || enrollmentYear < 1900) {
+    return 'Ano da matrícula inválido.'
+  }
+
+  return null
+}
+
+export const validateName = (input: string): string | null => {
+  const value = normalizeName(input)
+
+  if (value.length < 3) {
+    return 'Nome deve ter pelo menos 3 caracteres'
+  }
+
+  if (!/^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$/.test(value)) {
+    return 'Nome inválido. Use apenas letras e espaços'
+  }
+
+  if (!/[AEIOUaeiouÀ-ÖØ-öø-ÿ]/.test(value) || /(.)\1{3,}/.test(value)) {
+    return 'Nome inválido. Informe um nome real'
+  }
+
+  if (SUSPICIOUS_NAME_PATTERN.test(value)) {
+    return 'Nome inválido. Informe seu nome real'
+  }
+
+  return null
+}

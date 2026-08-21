@@ -29,18 +29,25 @@ ViewSync uses a distributed architecture:
 ### Prerequisites
 - Node.js (v18+)
 - C++ Build Tools (for Mediasoup)
+- See [SETUP.md](SETUP.md) for detailed step-by-step instructions for your OS
 
-### Installation
+### Quick Start
 ```bash
 # Install dependencies
-npm install
+npm ci
 
-# Build the viewer
-npm run build --workspace=view-sync-web
+# Build the viewer web app
+npm run build --workspace=viewer-web
 
-# Run the desktop app in dev mode
-npm run dev --workspace=view-sync-desktop
+# Go to desktop app and rebuild native modules
+cd apps/desktop-transmissor
+npm run rebuild:native
+
+# Run dev mode (from root)
+npm start:desktop
 ```
+
+**For complete setup guide:** See [SETUP.md](SETUP.md)
 
 ## 📦 Distribution
 

@@ -14,7 +14,7 @@ export default defineConfig({
             minify: false,
             outDir: 'dist-electron',
             rollupOptions: {
-              external: ['mediasoup', 'express', 'socket.io', 'bufferutil', 'utf-8-validate'],
+              external: ['mediasoup', 'electron', 'express', 'socket.io', 'bufferutil', 'utf-8-validate'],
               output: {
                 format: 'cjs', 
                 entryFileNames: '[name].js',
@@ -30,7 +30,7 @@ export default defineConfig({
             minify: false,
             outDir: 'dist-electron',
             rollupOptions: {
-              external: ['mediasoup', 'express', 'socket.io', 'bufferutil', 'utf-8-validate'],
+              external: ['mediasoup', 'electron', 'express', 'socket.io', 'bufferutil', 'utf-8-validate'],
               output: {
                 format: 'cjs', 
                 entryFileNames: '[name].js',
@@ -71,5 +71,8 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
+    watch: {
+      ignored: ['**/release/**', '**/dist-electron/**'],
+    },
   },
 })

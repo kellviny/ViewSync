@@ -1,5 +1,217 @@
+/* ============================================================
+   ViewSync Studio — Design System
+   Style: Cyberpunk UI + Glassmorphism | Mode: OLED Dark
+   Fonts: Fira Code (mono/data) + Fira Sans (body)
+   ============================================================ */
+
+/* Fontes locais — funciona 100% sem internet */
+@import '@fontsource/fira-code/400.css';
+@import '@fontsource/fira-code/500.css';
+@import '@fontsource/fira-code/600.css';
+@import '@fontsource/fira-code/700.css';
+@import '@fontsource/fira-sans/300.css';
+@import '@fontsource/fira-sans/400.css';
+@import '@fontsource/fira-sans/500.css';
+@import '@fontsource/fira-sans/600.css';
+@import '@fontsource/fira-sans/700.css';
+
 @import "tailwindcss";
 
-body {
-  @apply m-0 overflow-hidden bg-gray-50 font-sans text-gray-800;
+/* ── Design Tokens ─────────────────────────────────────────── */
+:root {
+  /* Backgrounds */
+  --vs-bg-base:      #0A0A0F;
+  --vs-bg-surface:   #0F0F1A;
+  --vs-bg-elevated:  #141425;
+  --vs-bg-card:      rgba(255,255,255,0.04);
+  --vs-bg-card-hover:rgba(255,255,255,0.07);
+
+  /* Accents */
+  --vs-accent:       #6366F1; /* indigo-500 */
+  --vs-accent-dim:   rgba(99,102,241,0.2);
+  --vs-accent-glow:  rgba(99,102,241,0.4);
+  --vs-neon:         #818CF8; /* indigo-400 */
+  --vs-live:         #22D3EE; /* cyan-400 — mais cyberpunk que verde */
+  --vs-live-glow:    rgba(34,211,238,0.35);
+  --vs-danger:       #F43F5E;
+  --vs-danger-glow:  rgba(244,63,94,0.35);
+
+  /* Text */
+  --vs-text:         #F1F5F9;
+  --vs-text-muted:   #64748B;
+  --vs-text-dim:     #334155;
+
+  /* Borders */
+  --vs-border:       rgba(255,255,255,0.06);
+  --vs-border-accent:rgba(99,102,241,0.3);
+
+  /* Glows */
+  --vs-glow-sm:      0 0 12px var(--vs-accent-glow);
+  --vs-glow-md:      0 0 24px var(--vs-accent-glow), 0 0 48px rgba(99,102,241,0.15);
+  --vs-glow-live:    0 0 16px var(--vs-live-glow);
+
+  /* Radius */
+  --vs-radius:       1rem;
+  --vs-radius-sm:    0.625rem;
+  --vs-radius-lg:    1.25rem;
+
+  /* Typography */
+  --font-body:       'Fira Sans', 'Inter', system-ui, sans-serif;
+  --font-mono:       'Fira Code', 'JetBrains Mono', monospace;
 }
+
+/* ── Base ──────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { height: 100%; }
+
+body {
+  margin: 0;
+  height: 100%;
+  font-family: var(--font-body);
+  font-size: 14px;
+  background-color: var(--vs-bg-base);
+  color: var(--vs-text);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  selection-color: var(--vs-accent);
+}
+
+::selection {
+  background: var(--vs-accent-dim);
+  color: var(--vs-text);
+}
+
+/* ── Scrollbar custom ──────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--vs-border); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--vs-text-dim); }
+
+/* ── Glass card utility ─────────────────────────────────────── */
+.glass {
+  background: var(--vs-bg-card);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--vs-border);
+}
+
+.glass-accent {
+  background: var(--vs-accent-dim);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--vs-border-accent);
+}
+
+/* ── Neon text glow ─────────────────────────────────────────── */
+.neon-text {
+  color: var(--vs-neon);
+  text-shadow: 0 0 8px var(--vs-accent-glow), 0 0 20px rgba(99,102,241,0.3);
+}
+.live-text {
+  color: var(--vs-live);
+  text-shadow: 0 0 8px var(--vs-live-glow);
+}
+
+/* ── Mono utility ────────────────────────────────────────────── */
+.font-mono { font-family: var(--font-mono); }
+
+/* ── Animations ─────────────────────────────────────────────── */
+@keyframes vs-pulse-live {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--vs-live-glow); }
+  50%       { opacity: 0.7; box-shadow: 0 0 0 6px transparent; }
+}
+@keyframes vs-glow-pulse {
+  0%, 100% { box-shadow: var(--vs-glow-sm); }
+  50%       { box-shadow: var(--vs-glow-md); }
+}
+@keyframes vs-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes vs-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes vs-scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes scanline {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+.animate-live    { animation: vs-pulse-live 2s ease-in-out infinite; }
+.animate-glow    { animation: vs-glow-pulse 3s ease-in-out infinite; }
+.animate-fade-up { animation: vs-fade-up 0.4s ease-out both; }
+.animate-scale-in{ animation: vs-scale-in 0.3s ease-out both; }
+
+/* ── Scanlines overlay (optional OLED effect) ────────────────── */
+.scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Neon border glow ────────────────────────────────────────── */
+.border-glow-accent { box-shadow: 0 0 0 1px var(--vs-border-accent), var(--vs-glow-sm); }
+.border-glow-live   { box-shadow: 0 0 0 1px rgba(34,197,94,0.3), var(--vs-glow-live); }
+
+/* ── Shimmer skeleton ─────────────────────────────────────────── */
+.shimmer {
+  background: linear-gradient(90deg, var(--vs-bg-surface) 25%, var(--vs-bg-elevated) 50%, var(--vs-bg-surface) 75%);
+  background-size: 200% 100%;
+  animation: vs-shimmer 1.5s ease-in-out infinite;
+}
+
+/* ── Input base ──────────────────────────────────────────────── */
+.vs-input {
+  width: 100%;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--vs-border);
+  border-radius: var(--vs-radius-sm);
+  color: var(--vs-text);
+  padding: 0.625rem 0.875rem;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.vs-input:focus {
+  border-color: var(--vs-accent);
+  box-shadow: 0 0 0 3px var(--vs-accent-dim);
+}
+.vs-input::placeholder { color: var(--vs-text-dim); }
+.vs-input:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Select base ─────────────────────────────────────────────── */
+.vs-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(255,255,255,0.03) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center;
+  border: 1px solid var(--vs-border);
+  border-radius: var(--vs-radius-sm);
+  color: var(--vs-text);
+  padding: 0.625rem 2.25rem 0.625rem 0.875rem;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.vs-select:focus {
+  border-color: var(--vs-accent);
+  box-shadow: 0 0 0 3px var(--vs-accent-dim);
+}
+.vs-select option { background: var(--vs-bg-elevated); color: var(--vs-text); }
