@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- App Sandbox obrigatório para MAS -->
+  <key>com.apple.security.app-sandbox</key><true/>
+
+  <!-- Obrigatório para o worker nativo do Mediasoup -->
+  <key>com.apple.security.cs.allow-jit</key><true/>
+  <key>com.apple.security.cs.allow-unsigned-executable-memory</key><true/>
+  <key>com.apple.security.cs.disable-library-validation</key><true/>
+
+  <!-- Rede local (necessário para o servidor interno na porta 3000) -->
+  <key>com.apple.security.network.server</key><true/>
+  <key>com.apple.security.network.client</key><true/>
+
+  <!-- Mídia -->
+  <key>com.apple.security.device.camera</key><true/>
+  <key>com.apple.security.device.microphone</key><true/>
+</dict>
+</plist>

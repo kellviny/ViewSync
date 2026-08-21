@@ -1,0 +1,39 @@
+name: Build macOS Releases
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-mac-arm64:
+    name: Build Mac Apple Silicon (M1/M2/M3/M4)
+    runs-on: macos-14
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Shared Types
+        run: npm run build --workspace=@mirror/shared-types
+
+      - name: Build Mac Apple Silicon - Institutional Version
+        run: npm run build:inst:mac:arm64
+
+      - name: Build Mac Apple Silicon - Normal Version
+        run: npm run build:normal:mac:arm64
+
+      - name: Upload Artifacts (Apple Silicon)
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-arm64-releases
+          path: apps/desktop-transmissor/release/*.dmg
