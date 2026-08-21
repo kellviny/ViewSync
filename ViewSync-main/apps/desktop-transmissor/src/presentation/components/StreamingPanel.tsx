@@ -120,21 +120,23 @@ export const StreamingPanel = ({
         </div>
       </div>
 
-      {/* ── Control Bar: Admin Panel Button ─────────────── */}
-      <div className="flex justify-end mt-2 mb-4">
-        <button
-          onClick={() => setIsAdminQrModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 active:scale-95"
-          style={{
-            background: 'linear-gradient(135deg, #6366F1, #4338CA)',
-            color: 'white',
-            boxShadow: 'var(--vs-glow-sm)',
-          }}
-        >
-          <Shield className="w-3.5 h-3.5" />
-          Painel do Professor
-        </button>
-      </div>
+      {/* ── Control Bar: Admin Panel Button (Institucional) ─────────────── */}
+      {import.meta.env.VITE_APP_MODE === 'institutional' && (
+        <div className="flex justify-end mt-2 mb-4">
+          <button
+            onClick={() => setIsAdminQrModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 active:scale-95 cursor-pointer"
+            style={{
+              background: 'linear-gradient(135deg, #6366F1, #4338CA)',
+              color: 'white',
+              boxShadow: 'var(--vs-glow-sm)',
+            }}
+          >
+            <Shield className="w-3.5 h-3.5" />
+            Painel do Professor
+          </button>
+        </div>
+      )}
 
       {/* ── Metrics + Preview ─────────────────────────────── */}
       <div className="grid grid-cols-[auto_1fr] gap-4">

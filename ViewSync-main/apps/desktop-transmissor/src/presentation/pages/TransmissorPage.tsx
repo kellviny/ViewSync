@@ -102,27 +102,43 @@ export const TransmissorPage = () => {
                     <Shield className="w-5 h-5 text-indigo-400" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-white mb-1">Painel do Professor</h3>
-                    <p className="text-[10px] text-gray-400">Gerencie a sala pelo seu celular</p>
+                    <h3 className="text-sm font-bold text-white mb-1">
+                      {import.meta.env.VITE_APP_MODE === 'institutional' ? 'Painel do Professor' : 'Acesso da Sala'}
+                    </h3>
+                    <p className="text-[10px] text-gray-400">
+                      {import.meta.env.VITE_APP_MODE === 'institutional'
+                        ? 'Gerencie a sala pelo seu celular'
+                        : 'Escaneie para acessar a transmissão'}
+                    </p>
                   </div>
                   <div className="p-3 bg-white rounded-xl">
-                    <QRCodeSVG value={adminToken ? `http://${serverIp}:${serverPort}/admin#${adminToken}` : `http://${serverIp}:${serverPort}`} size={160} />
+                    <QRCodeSVG
+                      value={
+                        import.meta.env.VITE_APP_MODE === 'institutional' && adminToken
+                          ? `http://${serverIp}:${serverPort}/admin#${adminToken}`
+                          : `http://${serverIp}:${serverPort}`
+                      }
+                      size={160}
+                    />
                   </div>
 
                   <p className="text-[10px] text-gray-500 text-center font-mono break-all w-full px-2 mt-1">
-                    {adminToken ? `http://${serverIp}:${serverPort}/admin#${adminToken}` : `http://${serverIp}:${serverPort}`}
+                    {import.meta.env.VITE_APP_MODE === 'institutional' && adminToken
+                      ? `http://${serverIp}:${serverPort}/admin#${adminToken}`
+                      : `http://${serverIp}:${serverPort}`}
                   </p>
 
                   <button 
                     onClick={() => {
-                      if (adminToken) {
-                        navigator.clipboard.writeText(`http://${serverIp}:${serverPort}/admin#${adminToken}`)
-                        alert('Link de admin copiado!')
-                      }
+                      const targetUrl = import.meta.env.VITE_APP_MODE === 'institutional' && adminToken
+                        ? `http://${serverIp}:${serverPort}/admin#${adminToken}`
+                        : `http://${serverIp}:${serverPort}`
+                      navigator.clipboard.writeText(targetUrl)
+                      alert(import.meta.env.VITE_APP_MODE === 'institutional' ? 'Link de admin copiado!' : 'Link da sala copiado!')
                     }}
-                    className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 hover:text-white transition-colors"
+                    className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 hover:text-white transition-colors cursor-pointer"
                   >
-                    Copiar Link Admin
+                    {import.meta.env.VITE_APP_MODE === 'institutional' ? 'Copiar Link Admin' : 'Copiar Link da Sala'}
                   </button>
                 </div>
               </div>

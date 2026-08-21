@@ -1,10 +1,9 @@
 import type { ScreenCapturePort } from '../../application/ports/ScreenCapturePort'
 
-type ChromeDesktopVideoConstraints = {
+export type ChromeDesktopVideoConstraints = {
   mandatory: {
     chromeMediaSource: 'desktop'
     chromeMediaSourceId: string
-    minFrameRate: number
     maxFrameRate: number
   }
 }
@@ -18,9 +17,8 @@ export const createScreenCaptureAdapter = (): ScreenCapturePort => {
           mandatory: {
             chromeMediaSource: 'desktop',
             chromeMediaSourceId: sourceId,
-            minFrameRate: 10,
             maxFrameRate: fps,
-          } satisfies ChromeDesktopVideoConstraints['mandatory'],
+          },
         },
       }
 
