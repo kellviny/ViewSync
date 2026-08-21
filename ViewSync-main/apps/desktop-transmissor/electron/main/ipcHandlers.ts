@@ -1,8 +1,9 @@
-import { desktopCapturer, ipcMain } from 'electron'
+import { BrowserWindow, desktopCapturer, ipcMain } from 'electron'
 
 export const registerIpcHandlers = (): void => {
   ipcMain.removeHandler('get-desktop-sources')
   ipcMain.removeHandler('get-network-info')
+  ipcMain.removeHandler('set-content-protection')
 
   ipcMain.handle('get-desktop-sources', async () => {
     try {
@@ -24,4 +25,16 @@ export const registerIpcHandlers = (): void => {
   ipcMain.handle('get-network-info', async () => {
     return {}
   })
-}
+
+  ipcMain.handle('set-content-protection', async (_event, enable: boolean) => {
+    try {
+      const windows = BrowserWindow.getAllWindows()
+      for (const win of windows) {
+        win.setContentProtection(Boolean(enable))
+      }
+      return true
+    } catch {
+      return false
+    }
+  })
+}

@@ -43,6 +43,14 @@ export const StreamingPanel = ({
   const [isAudienceModalOpen, setIsAudienceModalOpen] = useState(false)
   const [isAdminQrModalOpen, setIsAdminQrModalOpen] = useState(false)
   const [isStudentQrModalOpen, setIsStudentQrModalOpen] = useState(false)
+
+  const handleSetAdminQrModalOpen = (open: boolean) => {
+    setIsAdminQrModalOpen(open)
+    if (typeof window !== 'undefined' && (window as any).ipcRenderer?.invoke) {
+      (window as any).ipcRenderer.invoke('set-content-protection', open).catch(() => {})
+    }
+  }
+
   const url = `http://${serverIp}:${serverPort}`
   const adminUrl = adminToken ? `${url}/admin#${adminToken}` : ''
 
@@ -124,7 +132,7 @@ export const StreamingPanel = ({
       {import.meta.env.VITE_APP_MODE === 'institutional' && (
         <div className="flex justify-end mt-2 mb-4">
           <button
-            onClick={() => setIsAdminQrModalOpen(true)}
+            onClick={() => handleSetAdminQrModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 active:scale-95 cursor-pointer"
             style={{
               background: 'linear-gradient(135deg, #6366F1, #4338CA)',
@@ -260,7 +268,7 @@ export const StreamingPanel = ({
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4" style={{ background: 'rgba(2,4,10,0.85)', backdropFilter: 'blur(8px)' }}>
           <div className="bg-black/90 p-8 rounded-3xl border border-white/10 shadow-2xl flex flex-col items-center gap-6 max-w-sm w-full relative">
             <button
-              onClick={() => setIsAdminQrModalOpen(false)}
+              onClick={() => handleSetAdminQrModalOpen(false)}
               className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white"
             >
               <X className="w-5 h-5" />
