@@ -1,7 +1,7 @@
 {
   "name": "view-sync-desktop",
   "private": true,
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "ViewSync - Transmissor de Tela",
   "author": "Kellviny",
   "scripts": {

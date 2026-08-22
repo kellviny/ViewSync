@@ -216,6 +216,32 @@ export const useViewerController = () => {
       })
   }, [isAuthenticated, activeProducerId, deps])
 
+  // ── Sincronizador de Latência Zero (Catch-Up de Baixa Latência) ──
+  // Se o buffer do navegador acumular mais de 300ms de atraso devido a oscilações da Wi-Fi,
+  // força o video.currentTime a pular direto para a borda do tempo real (buffered.end).
+  useEffect(() => {
+    if (!isAuthenticated || !activeProducerId) return
+
+    const interval = setInterval(() => {
+      const video = videoRef.current
+      if (!video || video.paused || !video.buffered.length) return
+
+      try {
+        const liveEdge = video.buffered.end(video.buffered.length - 1)
+        const delay = liveEdge - video.currentTime
+
+        // Se o delay acumulado passar de 0.35s (350ms), salta para o tempo real instantaneamente
+        if (delay > 0.35) {
+          video.currentTime = liveEdge
+        }
+      } catch (err) {
+        // Ignora erros de buffer vazios em transições
+      }
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [isAuthenticated, activeProducerId])
+
   const joinRoom = () => {
     if (roomState?.config?.hasPassword && !inputPassword.trim()) {
       setError('Digite a senha da sala')
