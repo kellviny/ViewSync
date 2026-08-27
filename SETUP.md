@@ -1,254 +1,190 @@
-# 🚀 Guia de Setup — ViewSync
+# 🚀 Guia de Setup e Build — ViewSync (LanView)
 
-Passo a passo **prático** para rodar o projeto do zero no seu computador.
-
----
-
-## 📋 Pré-requisitos
-
-Instale **antes de começar**:
-
-### macOS
-```bash
-# 1. Node.js (v18+) via Homebrew
-brew install node
-
-# 2. Xcode Command Line Tools (necessário para compilar mediasoup)
-xcode-select --install
-
-# 3. Verificar versões
-node --version  # deve ser v18+
-npm --version   # deve ser npm 9+
-```
-
-### Windows
-```bash
-# 1. Node.js (v18+) → baixe em https://nodejs.org/
-# (selecione versão LTS)
-
-# 2. Visual Studio Build Tools → baixe em:
-# https://visualstudio.microsoft.com/downloads/
-# Na instalação, marque: "Desktop development with C++"
-
-# 3. Verificar versões
-node --version
-npm --version
-```
-
-### Linux (Ubuntu/Debian)
-```bash
-# 1. Node.js
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt-get install -y nodejs
-
-# 2. Build essentials
-sudo apt-get install -y build-essential python3
-
-# 3. Verificar
-node --version
-npm --version
-```
+Passo a passo completo e prático para configurar o ambiente de desenvolvimento e **gerar os executáveis/instaladores (Build)** no seu computador em qualquer sistema operacional (**Windows**, **macOS** ou **Linux**).
 
 ---
 
-## 1️⃣ Clonar ou abrir o projeto
+## 📋 1. Pré-requisitos por Sistema Operacional
+
+Instale as dependências essenciais de acordo com a sua máquina antes de começar:
+
+### 🪟 Windows
+1. **Node.js (v18+)**: Baixe a versão LTS em [nodejs.org](https://nodejs.org/).
+2. **Visual Studio Build Tools (C++)**: Necessário para compilar o módulo nativo do *Mediasoup*.
+   - Baixe o instalador em: [Visual Studio Downloads](https://visualstudio.microsoft.com/downloads/) (procure por *Build Tools para Visual Studio*).
+   - Durante a instalação, marque a opção: **"Desenvolvimento para desktop com C++"** (*Desktop development with C++*).
+3. **Python (3.x)**: Geralmente instalado automaticamente junto com as Build Tools do VS.
+
+### 🍎 macOS (Apple Silicon M1/M2/M3/M4 ou Intel)
+1. **Node.js (v18+)**: Via Homebrew (`brew install node`) ou pelo site oficial.
+2. **Xcode Command Line Tools**:
+   ```bash
+   xcode-select --install
+   ```
+3. **Python 3**: Padrão do macOS ou via `brew install python`.
+
+### 🐧 Linux (Ubuntu / Debian / Pop!_OS)
+1. **Node.js (v18+)**:
+   ```bash
+   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+   sudo apt-get install -y nodejs
+   ```
+2. **Ferramentas de compilação C++ e Python**:
+   ```bash
+   sudo apt-get install -y build-essential python3 python3-pip
+   ```
+
+---
+
+## 📥 2. Clonando o Repositório e Instalando Dependências
+
+Abra o terminal na pasta do projeto e instale todas as dependências do monorepo:
 
 ```bash
-# Se NÃO tem o projeto ainda
-git clone <seu-repo-aqui>
+# 1. Clonar o projeto (se ainda não tiver clonado)
+git clone https://github.com/kellviny/ViewSync.git
 cd ViewSync
 
-# Se JÁ tem o projeto
-cd ViewSync
-```
-
----
-
-## 2️⃣ Instalar dependências (IMPORTANTE)
-
-```bash
-# Instale em modo clean (limpa cache antigo)
+# 2. Instalar dependências de todos os workspaces (raiz, desktop e viewer-web)
 npm ci
-
-# Isso vai:
-# - Instalar dependências da raiz
-# - Instalar dependências de cada workspace (apps/*, packages/*)
-# - Demorar ~2-3 minutos na primeira vez
-
-# Se aparecer erro: "ERR! code ERESOLVE"
-# → execute: npm install --legacy-peer-deps
 ```
+> 💡 *Caso ocorra algum conflito de dependências antigas, use:* `npm install --legacy-peer-deps`
 
 ---
 
-## 3️⃣ Build do Frontend (Viewer Web)
+## ⚙️ 3. Compilação dos Módulos Nativos (Mediasoup SFU)
+
+O **Mediasoup** requer um executável *worker* compilado em C++ para a arquitetura exata do seu processador e versão do Electron:
 
 ```bash
-# Construir a página web do viewer
-npm run build --workspace=viewer-web
-
-# Isso gera: apps/viewer-web/out/
-# (arquivos estáticos HTML/CSS/JS)
-```
-
----
-
-## 4️⃣ Rebuild Nativo (Mediasoup) — ⚠️ IMPORTANTE
-
-```bash
-# Compilar mediasoup para seu SO
+# Entrar na pasta do desktop e compilar para o Electron da sua máquina
 cd apps/desktop-transmissor
 npm run rebuild:native
-
-# Isso vai:
-# - Compilar módulos nativos (C++)
-# - Levar ~1-2 minutos
-# - Criar node_modules/.bin/electron-rebuild
-
-# Se falhar com erro de Python/Node-GYP:
-# macOS: xcode-select --install
-# Windows: Visual Studio Build Tools (ver pré-requisitos)
-# Linux: sudo apt install python3 build-essential
+cd ../..
 ```
+*Esse processo leva cerca de 1 a 2 minutos e compilará o binário nativo com sucesso.*
 
 ---
 
-## 5️⃣ Rodar em DEV MODE
+## 💻 4. Rodando em Modo de Desenvolvimento (Dev)
 
-### Terminal 1 — Servidor (signaling + mediasoup)
+Você pode rodar toda a aplicação com um único comando na raiz do projeto:
+
 ```bash
-cd /seu/caminho/ViewSync/apps/desktop-transmissor
+# Modo Padrão (LanView)
+npm run dev:normal
 
-# Rodar servidor na porta 3001
-npm run dev
-
-# Você verá:
-# ✓ Express server running on http://localhost:3001
-# ✓ Socket.io ready
-# ✓ Serving viewer web from: ../viewer-web/out
+# Modo Institucional (Customizado para instituições de ensino)
+npm run dev:inst
 ```
 
-### Terminal 2 — Electron App
-```bash
-cd /seu/caminho/ViewSync/apps/desktop-transmissor
-
-# Rodar o Electron (em outro terminal)
-npm run dev
-
-# Ou se preferir direto:
-npx vite --open  # (abre no browser, modo debug Vite)
-```
+*O comando iniciará o servidor de desenvolvimento Vite, compilará o Electron e abrirá a janela do **ViewSync Studio** automaticamente.*
 
 ---
 
-## ✅ Verificar se funcionou
+## 📦 5. Como Gerar o Build (Executáveis e Instaladores)
 
-1. **Electron abriu?** ✓ Sim → OK
-2. **Servidor rodando?** ✓ Vá em `http://localhost:3001` no browser
-3. **Ve "LanView" no topo?** ✓ Sim → PRONTO!
-
----
-
-## 🐛 Troubleshooting
-
-### Erro: "npm ERR! code ERESOLVE"
-**Solução:**
-```bash
-npm install --legacy-peer-deps
-```
-
-### Erro: "Port 3001 already in use"
-**Solução:**
-```bash
-# macOS/Linux
-lsof -i :3001
-kill -9 <PID>
-
-# Windows
-netstat -ano | findstr :3001
-taskkill /PID <PID> /F
-
-# Depois rode novamente: npm run dev
-```
-
-### Erro: "mediasoup not found" ou "ERESOLVE peer dependencies"
-**Solução:**
-```bash
-cd apps/desktop-transmissor
-rm -rf node_modules package-lock.json
-npm install
-npm run rebuild:native
-```
-
-### Erro: "Cannot find module 'electron'" no Vite
-**Solução:**
-```bash
-npm run typecheck  # valida tipo de dados
-npm run build      # testa build production
-```
-
-### Erro na compilação (Windows): "Visual Studio build tools not found"
-**Solução:**
-- Baixe: https://visualstudio.microsoft.com/downloads/
-- Rode o instalador
-- Marque: "Desktop development with C++"
-- Reinicie o terminal
-
-### Electron não abre ou fica branco
-**Solução:**
-```bash
-# Terminal 1: Verifique se servidor está rodando
-npm run dev
-
-# Terminal 2: Debugar Electron
-npm run dev --verbose
-
-# Se continuar: limpar cache
-rm -rf node_modules .next dist-electron
-npm install
-npm run rebuild:native
-```
+Os comandos abaixo realizam o fluxo completo:
+1. Compila e gera o export estático do **Viewer Web** (`apps/viewer-web/out`).
+2. Compila os arquivos TypeScript e empacota os arquivos do **Transmissor Electron**.
+3. Gera os instaladores finais dentro da pasta **`apps/desktop-transmissor/release/`**.
 
 ---
 
-## 📦 Comandos úteis
+### 🪟 Build no Windows
+
+Execute na **raiz do projeto**:
 
 ```bash
-# Validar TypeScript (sem erros?)
-npm run typecheck --workspace=view-sync-desktop
+# Gera o Instalador NSIS (.exe) E o Executável Portátil (.exe) - Modo Normal
+npm run build:normal:win
 
-# Build completo (produção)
-npm run build --workspace=view-sync-desktop
-
-# Limpar tudo e reinstalar
-npm run clean  # (se existir)
-rm -rf node_modules
-npm install
-
-# Ver workspace atual
-npm run -a list
-
-# Rodar só o servidor (sem Electron)
-npm run dev --workspace=view-sync-desktop
+# Modo Institucional
+npm run build:inst:win
 ```
 
----
-
-## 🎯 Próximos passos
-
-1. ✅ Projeto rodando localmente?
-2. → Teste captura de tela (botão "Start Stream")
-3. → Abra viewer web em `http://localhost:3001`
-4. → Conecte visualizador
+📁 **Arquivos gerados em `apps/desktop-transmissor/release/`:**
+* **`LanView-Setup-1.1.3-win-x64.exe`**: Instalador clássico do Windows com atalhos na Área de Trabalho e Menu Iniciar.
+* **`LanView-Portable-1.1.3-win-x64.exe`**: Versão portátil autossuficiente (basta dar dois cliques para rodar, não precisa instalar).
+* **`win-unpacked/LanView.exe`**: Versão descompactada para testes imediatos.
 
 ---
 
-## 📞 Dúvidas?
+### 🍎 Build no macOS
 
-Se der erro:
-1. Copie a mensagem de erro completa
-2. Rode: `npm list mediasoup` (veja se instalou)
-3. Rode: `npm run typecheck` (erro de TypeScript?)
-4. Verifique se Node.js é v18+: `node --version`
+Execute na **raiz do projeto** em uma máquina Mac:
 
-**Sucesso! 🚀**
+```bash
+# Para Macs com Apple Silicon (M1, M2, M3, M4 - ARM64)
+npm run build:normal:mac:arm64
+# ou modo institucional:
+npm run build:inst:mac:arm64
+
+# Para Macs com processador Intel (x64)
+npm run build:normal:mac
+# ou modo institucional:
+npm run build:inst:mac
+```
+
+📁 **Arquivos gerados em `apps/desktop-transmissor/release/`:**
+* **`LanView-1.1.3-mac-arm64.dmg`** (ou `.dmg` para x64): Imagem de disco padrão do macOS com suporte a arrastar para a pasta *Applications*.
+
+---
+
+### 🐧 Build no Linux
+
+Execute na **raiz do projeto** em uma distribuição Linux:
+
+```bash
+npm run build:linux
+```
+
+📁 **Arquivos gerados em `apps/desktop-transmissor/release/`:**
+* **`LanView-1.1.3-x86_64.AppImage`**: Executável universal compatível com qualquer distribuição Linux.
+* **`lanview_1.1.3_amd64.deb`**: Pacote de instalação para Debian, Ubuntu, Linux Mint, etc.
+
+---
+
+## 🛠️ 6. Resolução de Problemas (Troubleshooting)
+
+### ❌ Erro: "Visual Studio C++ build tools not found" (Windows)
+* **Causa:** O compilador C++ da Microsoft não foi instalado.
+* **Solução:** Baixe o *Build Tools para Visual Studio*, execute o instalador e certifique-se de marcar **"Desenvolvimento para desktop com C++"**.
+
+### ❌ Erro: "Mediasoup worker failed to exit / ABI mismatch"
+* **Causa:** O worker nativo foi compilado para outra versão do Node/Electron ou foi corrompido.
+* **Solução:**
+  ```bash
+  cd apps/desktop-transmissor
+  npm run clean:native
+  cd ../..
+  ```
+
+### ❌ Porta 3001 ocupada ("Port 3001 already in use")
+* **Solução Windows:**
+  ```powershell
+  Get-Process | Where-Object { $_.ProcessName -like "*electron*" -or $_.ProcessName -like "*node*" } | Stop-Process -Force
+  ```
+* **Solução macOS / Linux:**
+  ```bash
+  lsof -ti:3001 | xargs kill -9
+  ```
+
+---
+
+## 🎯 Resumo dos Comandos Úteis
+
+| Comando | Descrição |
+|---|---|
+| `npm run dev:normal` | Inicia o app desktop e servidor em modo de desenvolvimento |
+| `npm run dev:inst` | Inicia em modo de desenvolvimento com tema institucional |
+| `npm run build:normal:win` | Gera os executáveis para Windows (`Setup.exe` e `Portable.exe`) |
+| `npm run build:normal:mac:arm64` | Gera o `.dmg` para macOS Apple Silicon |
+| `npm run build:normal:mac` | Gera o `.dmg` para macOS Intel |
+| `npm run build:linux` | Gera `.AppImage` e `.deb` para Linux |
+| `npm run typecheck --workspace=view-sync-desktop` | Valida todos os tipos TypeScript |
+
+---
+
+Desenvolvido por **Kellviny** • 2026
+

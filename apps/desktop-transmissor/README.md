@@ -9,14 +9,14 @@ Aplicação **Electron** usada pelo professor para capturar e transmitir a tela 
 ```
 ┌─────────────────────────────┐       LAN        ┌────────────────────┐
 │   ViewSync Studio (Electron) │ ────────────────► │  Viewer (Browser)  │
-│  ┌──────────┐  ┌──────────┐  │                  │  http://<IP>:3000  │
+│  ┌──────────┐  ┌──────────┐  │                  │  http://<IP>:3001  │
 │  │  React UI │  │ Mediasoup│  │  Socket.IO +     └────────────────────┘
 │  │ (Renderer)│  │  Server  │  │  WebRTC (UDP)
 │  └──────────┘  └──────────┘  │
 └─────────────────────────────┘
 ```
 
-O Studio inicializa um **servidor HTTP interno** (porta 3000) que:
+O Studio inicializa um **servidor HTTP interno** (porta 3001) que:
 
 - Expõe sinalização WebRTC via **Socket.IO**
 - Publica o vídeo usando **Mediasoup** (SFU — Selective Forwarding Unit)
@@ -125,40 +125,41 @@ As informações de rede reais (`ip`, `port`, `network`) chegam pelo evento `ser
 
 ## Desenvolvimento
 
-### Iniciando em modo dev (pelo monorepo):
+### Iniciando em modo dev (pela raiz do monorepo):
 
 ```bash
-# Na raiz do monorepo
-npm run start:desktop
-```
+# Modo padrão (LanView)
+npm run dev:normal
 
-### Iniciando diretamente:
-
-```bash
-cd apps/desktop-transmissor
-npm run dev
+# Modo institucional
+npm run dev:inst
 ```
 
 O Vite compila o React e o Electron simultaneamente via `vite-plugin-electron`. A aplicação abre automaticamente.
 
 ---
 
-## Build
+## Build e Empacotamento
 
-O build completo inclui compilar o Viewer web, depois o Studio:
+Para gerar os instaladores e binários de produção:
 
 ```bash
-# Build completo (inclui viewer-web)
-npm run build --workspace=view-sync-desktop
+# Windows (Gera o Instalador NSIS e o Executável Portable)
+npm run build:normal:win
+# ou institucional:
+npm run build:inst:win
 
-# Somente Windows (sem viewer)
-npm run build:win
+# macOS Apple Silicon (M1/M2/M3/M4 - DMG)
+npm run build:normal:mac:arm64
 
-# Somente macOS (requer máquina macOS ou CI cross-compile)
-npm run build:mac
+# macOS Intel (DMG)
+npm run build:normal:mac
+
+# Linux (AppImage e .deb)
+npm run build:linux
 ```
 
-O artefato final é gerado em `release/`.
+Os artefatos finais são gerados na pasta `apps/desktop-transmissor/release/`.
 
 ---
 

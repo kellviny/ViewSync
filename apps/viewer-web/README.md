@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ViewSync — Viewer Web 🌐📱
 
-## Getting Started
+O **Viewer Web** é a aplicação cliente do ViewSync desenvolvida em **Next.js** e **React**. Ela é executada diretamente no navegador dos alunos/espectadores (laptops, celulares, tablets, smart TVs) para receber a transmissão da tela via WebRTC em tempo real com ultrabaixa latência.
 
-First, run the development server:
+---
+
+## 🌟 Funcionalidades
+
+- **⚡ Ultrabaixa Latência**: Conexão WebRTC direta com o SFU (*Mediasoup*) rodando no computador do apresentador.
+- **🎯 Sincronização Inteligente (Zero Latency Catch-up)**: Monitora constantemente o atraso de buffer e ajusta dinamicamente a taxa de reprodução de vídeo para eliminar qualquer *drift* de atraso.
+- **📱 100% Responsivo & Mobile-Ready**: Interface moderna que se adapta automaticamente a celulares, tablets e desktops.
+- **🔋 Otimização de Recursos**: Pausa o consumo de mídia automaticamente caso a aba seja minimizada ou perca o foco, economizando bateria e tráfego na rede local.
+- **🔒 Autenticação por PIN**: Suporte a salas protegidas com código de acesso.
+
+---
+
+## 🛠️ Tecnologias
+
+- **Framework:** Next.js (com Static Export / SSG para pasta `out/`)
+- **UI:** React 19, Tailwind CSS, Lucide Icons
+- **Mídia:** `mediasoup-client`, `socket.io-client`
+
+---
+
+## 🚀 Desenvolvimento e Build
+
+### Modo de Desenvolvimento Isolado (Web)
 
 ```bash
+# Na raiz do monorepo
+npm run dev --workspace=viewer-web
+
+# Ou entrando na pasta
+cd apps/viewer-web
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse em: `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Build para Produção (Export Estático)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# Na raiz do monorepo
+npm run build --workspace=viewer-web
+```
 
-## Learn More
+*Os arquivos estáticos (HTML/CSS/JS) são gerados na pasta `apps/viewer-web/out/`. Essa pasta é empacotada junto com o aplicativo desktop do Electron e servida automaticamente na porta `3001` da rede local.*
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Desenvolvido por **Kellviny** • 2026
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

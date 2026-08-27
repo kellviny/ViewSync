@@ -14,8 +14,12 @@
     "build": "npm run build --workspace=view-sync-desktop",
     "build:inst:win": "cross-env VITE_APP_MODE=institutional NEXT_PUBLIC_APP_MODE=institutional npm run build:win --workspace=view-sync-desktop",
     "build:normal:win": "cross-env VITE_APP_MODE=normal NEXT_PUBLIC_APP_MODE=normal npm run build:win --workspace=view-sync-desktop",
+    "build:inst:mac": "cross-env VITE_APP_MODE=institutional NEXT_PUBLIC_APP_MODE=institutional npm run build:mac --workspace=view-sync-desktop",
+    "build:normal:mac": "cross-env VITE_APP_MODE=normal NEXT_PUBLIC_APP_MODE=normal npm run build:mac --workspace=view-sync-desktop",
     "build:inst:mac:arm64": "cross-env VITE_APP_MODE=institutional NEXT_PUBLIC_APP_MODE=institutional npm run build:mac:arm64 --workspace=view-sync-desktop",
     "build:normal:mac:arm64": "cross-env VITE_APP_MODE=normal NEXT_PUBLIC_APP_MODE=normal npm run build:mac:arm64 --workspace=view-sync-desktop",
+    "build:linux": "npm run build:linux --workspace=view-sync-desktop",
+    "check:docs": "node scripts/check-docs-sync.mjs",
     "version:patch": "npm version patch --workspaces --include-workspace-root --no-git-tag-version",
     "version:minor": "npm version minor --workspaces --include-workspace-root --no-git-tag-version",
     "version:major": "npm version major --workspaces --include-workspace-root --no-git-tag-version"
