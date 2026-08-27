@@ -281,6 +281,31 @@ const startServer = async () => {
     })
   })
 
+  // ── Monitor Contínuo de Mudança de Rede (Wi-Fi / Ethernet / IP) ──
+  // Checa a cada 3 segundos se o IP ou SSID mudou (quando não estiver transmitindo)
+  // e notifica todos os clientes e interface instantaneamente.
+  setInterval(async () => {
+    try {
+      if (roomSessionState.buildPublicState().isStreaming) return
+
+      const freshNet = await getNetworkDetails(true)
+      const freshInterfaces = getAllNetworkInterfaces()
+
+      if (freshNet.ip !== currentNet.ip || freshNet.network !== currentNet.network) {
+        console.info(`[Rede alterada] ${currentNet.ip} (${currentNet.network}) -> ${freshNet.ip} (${freshNet.network})`)
+        currentNet = freshNet
+
+        io.emit('server:info', {
+          ip: currentNet.ip,
+          network: currentNet.network,
+          port: HTTP_PORT,
+          interfaces: freshInterfaces,
+          adminToken: roomSessionState.getAdminToken(),
+        })
+      }
+    } catch {}
+  }, 3000)
+
   httpServer.listen(HTTP_PORT, '0.0.0.0')
 }
 

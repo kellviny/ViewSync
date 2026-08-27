@@ -139,10 +139,10 @@ function getSSID(): Promise<string | null> {
   })
 }
 
-export async function getNetworkDetails(): Promise<NetworkDetails> {
+export async function getNetworkDetails(force = false): Promise<NetworkDetails> {
   const now = Date.now()
 
-  if (networkCache && now - networkCache.cachedAt < CACHE_TTL_MS) {
+  if (!force && networkCache && now - networkCache.cachedAt < CACHE_TTL_MS) {
     return networkCache
   }
 
@@ -158,3 +158,4 @@ export async function getNetworkDetails(): Promise<NetworkDetails> {
 
   return networkCache
 }
+
