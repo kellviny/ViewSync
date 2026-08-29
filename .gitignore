@@ -47,3 +47,6 @@ Thumbs.db
 # Mediasoup build files
 worker/out
 worker/deps
+
+# TypeScript incremental build info
+*.tsbuildinfo

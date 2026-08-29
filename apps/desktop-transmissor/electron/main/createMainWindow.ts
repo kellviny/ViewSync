@@ -13,10 +13,14 @@ export const createMainWindow = ({
   rendererDist,
 }: CreateMainWindowParams): BrowserWindow => {
   const win = new BrowserWindow({
-    title: 'ViewSync Studio',
+    title: 'ViewSync',
     icon: path.join(process.env.VITE_PUBLIC || '', process.platform === 'win32' ? 'ico.ico' : 'ico.icns'),
     width: 1200,
     height: 800,
+    // Evita o flash branco enquanto o renderer carrega — no macOS a janela
+    // vazia dava a impressão de que o app não tinha aberto.
+    show: false,
+    backgroundColor: '#0b0f19',
     webPreferences: {
       preload: path.join(currentDir, 'preload.js'),
       backgroundThrottling: false,
@@ -27,6 +31,11 @@ export const createMainWindow = ({
   })
 
   win.setMenuBarVisibility(false)
+
+  win.once('ready-to-show', () => {
+    win.show()
+    win.focus()
+  })
 
   if (devServerUrl) {
     void win.loadURL(devServerUrl)

@@ -11,7 +11,12 @@ import {
   RTC_MAX_PORT,
   RTC_MIN_PORT,
 } from './signaling/config'
-import { getNetworkDetails, getAllNetworkInterfaces } from './signaling/network'
+import {
+  getAllNetworkInterfaces,
+  getInterfaceSignature,
+  getNetworkDetails,
+  invalidateSsidCache,
+} from './signaling/network'
 import { RoomSessionState } from './signaling/RoomSessionState'
 import { MediasoupEngine } from './signaling/MediasoupEngine'
 import type {
@@ -47,6 +52,11 @@ const isValidName = (input: string): boolean => {
   if (SUSPICIOUS_NAME_PATTERN.test(input)) return false
   return true
 }
+
+// Quando o processo principal morre, o canal IPC do fork fecha. Sem isto o
+// servidor vira órfão segurando a porta 3000, e a instância seguinte não
+// consegue subir — era a causa do app ficar "conectando" após um reinício.
+process.on('disconnect', () => process.exit(0))
 
 const startServer = async () => {
   const mediasoupEngine = new MediasoupEngine()
@@ -109,7 +119,7 @@ const startServer = async () => {
           <style>body{font-family:monospace;background:#0a0a0f;color:#a0a0b0;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;flex-direction:column;gap:16px;}</style>
           </head>
           <body>
-            <p style="color:#6366F1;font-size:1.2em;font-weight:bold;">ViewSync Studio — Modo Dev</p>
+            <p style="color:#6366F1;font-size:1.2em;font-weight:bold;">ViewSync — Modo Dev</p>
             <p>Viewer web não buildado. Rode em outro terminal:</p>
             <pre style="background:#111;padding:12px;border-radius:8px;color:#22D3EE;">cd apps/viewer-web && npm run build</pre>
             <p style="font-size:0.8em;color:#555;">Ou acesse o Next.js diretamente se estiver rodando.</p>
@@ -126,19 +136,20 @@ const startServer = async () => {
     io.emit('room:state_update', state)
   }
 
-  let currentNet = await getNetworkDetails()
+  let currentNet: { ip: string; network: string } = await getNetworkDetails()
+
+  const buildServerInfo = () => ({
+    ip: currentNet.ip,
+    network: currentNet.network,
+    port: HTTP_PORT,
+    interfaces: getAllNetworkInterfaces(),
+    adminToken: roomSessionState.getAdminToken(),
+  })
 
   io.on('connection', async (socket) => {
     roomSessionState.onSocketConnected(socket.id)
 
-    const allInterfaces = getAllNetworkInterfaces()
-    socket.emit('server:info', {
-      ip: currentNet.ip,
-      network: currentNet.network,
-      port: HTTP_PORT,
-      interfaces: allInterfaces,
-      adminToken: roomSessionState.getAdminToken()
-    })
+    socket.emit('server:info', buildServerInfo())
     broadcastState()
 
     socket.on('disconnect', () => {
@@ -151,6 +162,13 @@ const startServer = async () => {
 
       roomSessionState.onSocketDisconnect(socket.id)
       broadcastState()
+    })
+
+    // Permite ao host repedir os dados da sala a qualquer momento — cobre
+    // reconexão e qualquer corrida entre o 'connection' do servidor e o
+    // registro do listener no renderer.
+    socket.on('host:request_info', () => {
+      socket.emit('server:info', buildServerInfo())
     })
 
     socket.on('host:start_stream', (payload: HostStartStreamPayload, callback?: (res: { adminToken: string }) => void) => {
@@ -167,6 +185,9 @@ const startServer = async () => {
         if (stopResult.report) {
           socket.emit('host:stream_report', stopResult.report)
         }
+        // resetRoom() gera um adminToken novo: sem reemitir, o host ficaria
+        // com o token antigo (ou nenhum) até reconectar.
+        io.emit('server:info', buildServerInfo())
         broadcastState()
       }
     })
@@ -282,29 +303,62 @@ const startServer = async () => {
   })
 
   // ── Monitor Contínuo de Mudança de Rede (Wi-Fi / Ethernet / IP) ──
-  // Checa a cada 3 segundos se o IP ou SSID mudou (quando não estiver transmitindo)
-  // e notifica todos os clientes e interface instantaneamente.
+  // O tick é barato: compara apenas a assinatura das interfaces IPv4 vinda do
+  // `os` (sem spawn de processo). O SSID — que no macOS/Windows exige executar
+  // um binário do sistema — só é reconsultado quando a assinatura muda ou a
+  // cada SSID_RECHECK_TICKS ticks, para pegar troca de Wi-Fi que mantém o IP.
+  const NETWORK_TICK_MS = 2000
+  const SSID_RECHECK_TICKS = 5 // ~10s
+
+  let lastSignature = getInterfaceSignature()
+  let ticksSinceSsidCheck = 0
+  let networkTickBusy = false
+
+  const emitNetwork = (net: { ip: string; network: string }) => {
+    io.emit('server:info', {
+      ip: net.ip,
+      network: net.network,
+      port: HTTP_PORT,
+      interfaces: getAllNetworkInterfaces(),
+      adminToken: roomSessionState.getAdminToken(),
+    })
+  }
+
   setInterval(async () => {
+    if (networkTickBusy) return
+    networkTickBusy = true
+
     try {
       if (roomSessionState.buildPublicState().isStreaming) return
 
-      const freshNet = await getNetworkDetails(true)
-      const freshInterfaces = getAllNetworkInterfaces()
+      const signature = getInterfaceSignature()
+      const signatureChanged = signature !== lastSignature
+      ticksSinceSsidCheck += 1
+
+      const shouldRecheckSsid = signatureChanged || ticksSinceSsidCheck >= SSID_RECHECK_TICKS
+      if (!signatureChanged && !shouldRecheckSsid) return
+
+      if (signatureChanged) {
+        lastSignature = signature
+        invalidateSsidCache()
+      }
+      if (shouldRecheckSsid) ticksSinceSsidCheck = 0
+
+      const freshNet = await getNetworkDetails(shouldRecheckSsid)
 
       if (freshNet.ip !== currentNet.ip || freshNet.network !== currentNet.network) {
-        console.info(`[Rede alterada] ${currentNet.ip} (${currentNet.network}) -> ${freshNet.ip} (${freshNet.network})`)
+        console.info(
+          `[Rede alterada] ${currentNet.ip} (${currentNet.network}) -> ${freshNet.ip} (${freshNet.network})`
+        )
         currentNet = freshNet
-
-        io.emit('server:info', {
-          ip: currentNet.ip,
-          network: currentNet.network,
-          port: HTTP_PORT,
-          interfaces: freshInterfaces,
-          adminToken: roomSessionState.getAdminToken(),
-        })
+        emitNetwork(currentNet)
       }
-    } catch {}
-  }, 3000)
+    } catch {
+      // Detecção de rede é best-effort: nunca derruba o servidor.
+    } finally {
+      networkTickBusy = false
+    }
+  }, NETWORK_TICK_MS)
 
   httpServer.listen(HTTP_PORT, '0.0.0.0')
 }

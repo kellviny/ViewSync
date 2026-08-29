@@ -1,6 +1,6 @@
 # ViewSync (LanView) 🖥️🚀
 
-[![Version](https://img.shields.io/badge/version-1.1.3-blue.svg)](package.json)
+[![Version](https://img.shields.io/badge/version-1.1.4-blue.svg)](package.json)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 
@@ -103,15 +103,61 @@ npm run build:normal:win
 npm run build:inst:win
 ```
 Outputs in `apps/desktop-transmissor/release/`:
-- `LanView-Setup-1.1.3-win-x64.exe` (NSIS Installer)
-- `LanView-Portable-1.1.3-win-x64.exe` (Standalone Portable)
+- `LanView-Setup-1.1.4-win-x64.exe` (NSIS Installer)
+- `LanView-Portable-1.1.4-win-x64.exe` (Standalone Portable)
 
 ### macOS
 
 ```bash
-# Build macOS DMG (Apple Silicon)
+# Apple Silicon (M1/M2/M3/M4) — versão padrão
 npm run build:normal:mac:arm64
 ```
+
+```bash
+# Apple Silicon (M1/M2/M3/M4) — versão institucional
+npm run build:inst:mac:arm64
+```
+
+```bash
+# Intel (x64) — versão institucional
+npm run build:inst:mac:x64
+```
+
+Saídas em `apps/desktop-transmissor/release/`:
+- `LanView-Institucional-1.1.4-mac-arm64.dmg`
+- `LanView-Padrao-1.1.4-mac-arm64.dmg`
+
+As duas variantes agora têm nomes distintos (`APP_VARIANT`), então gerar
+institucional e padrão em sequência não sobrescreve mais o DMG anterior.
+
+O workflow `.github/workflows/build-mac.yml` gera os mesmos DMGs no GitHub
+Actions — automaticamente em tags `v*` ou manualmente em **Actions › Build
+macOS Releases › Run workflow** (com opções para escolher a variante e incluir
+ou não o build Intel).
+
+#### Permissões do macOS
+
+Na primeira execução o macOS pede duas autorizações e **não** as aplica ao
+processo que já está rodando — era por isso que o app só funcionava depois de
+fechar e abrir de novo:
+
+| Permissão | Onde autorizar | Sintoma quando falta |
+|---|---|---|
+| **Gravação de Tela** | Ajustes › Privacidade e Segurança › Gravação de Tela | Miniaturas/preview em preto |
+| **Rede Local** | Ajustes › Privacidade e Segurança › Rede Local | Alunos não abrem o endereço da sala |
+
+O app agora detecta a concessão em tempo real e **se reinicia sozinho**, sem
+intervenção manual.
+
+#### Nome da rede (SSID) no macOS
+
+O binário `airport` foi removido no macOS 14.4 e, do Sonoma em diante, o SSID só
+é revelado a apps autorizados em **Serviços de Localização** — sem isso o sistema
+devolve `<redacted>`. A detecção tenta `ipconfig getsummary` e depois
+`networksetup -getairportnetwork`; quando nenhuma responde, exibe o nome
+amigável da porta de hardware (**Wi-Fi**, **Ethernet**) em vez do device cru
+(`en0`). A troca de rede continua sendo detectada em qualquer caso, porque o
+monitor compara os IPs das interfaces, não o SSID.
 
 ---
 

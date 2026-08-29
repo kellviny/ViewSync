@@ -41,9 +41,24 @@ export const createServerProcessController = ({
 
   const stop = () => {
     if (!serverProcess) return
-    serverProcess.removeAllListeners()
-    serverProcess.kill()
+
+    const child = serverProcess
     serverProcess = null
+    child.removeAllListeners()
+    child.kill('SIGTERM')
+
+    // Os workers nativos do Mediasoup são netos deste processo e nem sempre
+    // caem com o SIGTERM. Se sobrarem, a porta 3000 continua ocupada e o app
+    // só volta a funcionar depois de fechar e abrir de novo — daí o SIGKILL.
+    const forceKill = setTimeout(() => {
+      try {
+        if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL')
+      } catch {
+        /* noop */
+      }
+    }, 1500)
+
+    forceKill.unref?.()
   }
 
   const isRunning = () => serverProcess !== null

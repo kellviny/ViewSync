@@ -5,35 +5,109 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      include_intel:
+        description: 'Também gerar o DMG para Macs Intel (x64)'
+        type: boolean
+        default: false
+      variants:
+        description: 'Quais versões gerar'
+        type: choice
+        default: 'both'
+        options:
+          - both
+          - institutional
+          - normal
+
+concurrency:
+  group: build-mac-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-mac-arm64:
-    name: Build Mac Apple Silicon (M1/M2/M3/M4)
-    runs-on: macos-14
+  build-mac:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.runner }}
+    # O runner Intel pode não estar disponível em todos os planos: sem ele, o
+    # build Apple Silicon (que é o alvo principal) ainda precisa concluir.
+    continue-on-error: ${{ matrix.arch == 'x64' }}
+    timeout-minutes: 60
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-14
+            label: Apple Silicon (M1/M2/M3/M4)
+          - arch: x64
+            runner: macos-15-intel
+            label: Intel (x64)
+
     steps:
+      - name: Pular Intel quando não solicitado
+        id: gate
+        run: |
+          if [ "${{ matrix.arch }}" = "x64" ] && [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.include_intel }}" != "true" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout repository
+        if: steps.gate.outputs.skip == 'false'
         uses: actions/checkout@v4
 
       - name: Setup Node.js
+        if: steps.gate.outputs.skip == 'false'
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: 'npm'
 
       - name: Install dependencies
+        if: steps.gate.outputs.skip == 'false'
         run: npm ci
 
       - name: Build Shared Types
+        if: steps.gate.outputs.skip == 'false'
         run: npm run build --workspace=@mirror/shared-types
 
-      - name: Build Mac Apple Silicon - Institutional Version
-        run: npm run build:inst:mac:arm64
+      # O worker nativo do Mediasoup é compilado em C++; sem cache cada job
+      # gasta vários minutos recompilando exatamente o mesmo binário.
+      - name: Cache Mediasoup worker
+        if: steps.gate.outputs.skip == 'false'
+        uses: actions/cache@v4
+        with:
+          path: apps/desktop-transmissor/node_modules/mediasoup/worker/out
+          key: mediasoup-${{ matrix.arch }}-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
-      - name: Build Mac Apple Silicon - Normal Version
-        run: npm run build:normal:mac:arm64
+      - name: Build Institucional
+        if: steps.gate.outputs.skip == 'false' && (github.event_name != 'workflow_dispatch' || inputs.variants != 'normal')
+        run: npm run build:inst:mac:${{ matrix.arch }}
+        env:
+          # Sem certificado Developer ID nos secrets, o electron-builder assina
+          # ad-hoc em vez de falhar o job.
+          CSC_IDENTITY_AUTO_DISCOVERY: false
 
-      - name: Upload Artifacts (Apple Silicon)
+      - name: Build Padrão
+        if: steps.gate.outputs.skip == 'false' && (github.event_name != 'workflow_dispatch' || inputs.variants != 'institutional')
+        run: npm run build:normal:mac:${{ matrix.arch }}
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Upload Artifacts
+        if: steps.gate.outputs.skip == 'false'
         uses: actions/upload-artifact@v4
         with:
-          name: macos-arm64-releases
+          name: macos-${{ matrix.arch }}-releases
           path: apps/desktop-transmissor/release/*.dmg
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publicar no Release (somente em tags)
+        if: steps.gate.outputs.skip == 'false' && startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: apps/desktop-transmissor/release/*.dmg
+          draft: true
+          fail_on_unmatched_files: true

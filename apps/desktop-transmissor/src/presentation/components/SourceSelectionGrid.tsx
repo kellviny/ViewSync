@@ -1,11 +1,28 @@
-import { CheckCircle2, Monitor } from 'lucide-react'
+import { useState } from 'react'
+import { CheckCircle2, Monitor, ShieldAlert } from 'lucide-react'
+import type { ScreenAccessStatus } from '../../infrastructure/types/window'
 import type { DesktopSource } from '../../domain/models/DesktopSource'
 
-export const SourceSelectionGrid = ({ sources, selectedSource, onSelectSource }: {
+export const SourceSelectionGrid = ({
+  sources,
+  selectedSource,
+  onSelectSource,
+  screenAccess = 'granted',
+  onRequestScreenAccess,
+  onRestartApp,
+}: {
   sources: DesktopSource[]
   selectedSource: string | null
   onSelectSource: (sourceId: string) => void
-}) => (
+  screenAccess?: ScreenAccessStatus
+  onRequestScreenAccess?: (openSettings: boolean) => void
+  onRestartApp?: () => void
+}) => {
+  // Depois do primeiro clique o pedido já está registrado: clicar de novo só
+  // faria o macOS repetir o alerta, então o botão sai de cena.
+  const [requested, setRequested] = useState(false)
+
+  return (
   <div className="animate-fade-up space-y-5">
     <div className="flex items-center gap-2.5">
       <div className="w-8 h-8 rounded-lg flex items-center justify-center"
@@ -20,7 +37,50 @@ export const SourceSelectionGrid = ({ sources, selectedSource, onSelectSource }:
       </div>
     </div>
 
-    {sources.length === 0 ? (
+    {screenAccess !== 'granted' ? (
+      <div
+        className="rounded-xl p-5 space-y-3"
+        style={{ background: 'rgba(244,63,94,0.06)', border: '1px solid rgba(244,63,94,0.25)' }}
+      >
+        <div className="flex items-center gap-2.5">
+          <ShieldAlert className="w-4 h-4" style={{ color: 'var(--vs-danger, #f43f5e)' }} />
+          <h3 className="text-sm font-bold text-white">Permissão de Gravação de Tela necessária</h3>
+        </div>
+        <p className="text-xs leading-relaxed" style={{ color: 'var(--vs-text-muted)' }}>
+          O macOS precisa autorizar o LanView a capturar a tela. Autorize em
+          <strong> Ajustes do Sistema › Privacidade e Segurança › Gravação de Tela</strong>.
+          Depois de marcar o LanView na lista, use <strong>Reiniciar o app</strong> — o
+          macOS não aplica a autorização ao processo que já está aberto.
+        </p>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setRequested(true)
+              onRequestScreenAccess?.(true)
+            }}
+            disabled={requested}
+            className="px-3 py-2 rounded-lg text-xs font-bold transition-opacity hover:opacity-80 disabled:opacity-40 disabled:cursor-default"
+            style={{ background: 'var(--vs-accent-dim)', border: '1px solid var(--vs-border-accent)', color: 'white' }}
+          >
+            {requested ? 'Aguardando autorização…' : 'Abrir Ajustes do Sistema'}
+          </button>
+          <button
+            onClick={() => onRequestScreenAccess?.(false)}
+            className="px-3 py-2 rounded-lg text-xs font-bold transition-opacity hover:opacity-80"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--vs-border)', color: 'var(--vs-text-muted)' }}
+          >
+            Já autorizei — verificar
+          </button>
+          <button
+            onClick={() => onRestartApp?.()}
+            className="px-3 py-2 rounded-lg text-xs font-bold transition-opacity hover:opacity-80"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--vs-border)', color: 'var(--vs-text-muted)' }}
+          >
+            Reiniciar o app
+          </button>
+        </div>
+      </div>
+    ) : sources.length === 0 ? (
       <div className="grid grid-cols-3 gap-4">
         {[...Array(6)].map((_, i) => (
           <div key={i} className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--vs-border)' }}>
@@ -83,5 +143,6 @@ export const SourceSelectionGrid = ({ sources, selectedSource, onSelectSource }:
         })}
       </div>
     )}
-  </div>
-)
+    </div>
+  )
+}

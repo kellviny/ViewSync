@@ -1,58 +1,80 @@
 import os from 'node:os'
-import { exec } from 'node:child_process'
+import { execFile } from 'node:child_process'
 
 const VIRTUAL_PREFIXES = [
   'loopback', 'vmware', 'virtualbox', 'vbox', 'wsl', 'docker',
   'vethernet', 'hyper-v', 'npcap', 'bluetooth', 'pseudo', 'teredo',
+  'awdl', 'llw', 'utun', 'ipsec', 'gif', 'stf', 'ap1', 'bridge',
 ]
 
-const CACHE_TTL_MS = 30_000
-
-type CachedNetworkDetails = {
-  ip: string
-  network: string
-  cachedAt: number
-}
-
-let networkCache: CachedNetworkDetails | null = null
+const SSID_TTL_MS = 15_000
+// O macOS devolve literalmente `<redacted>` quando o processo não tem
+// autorização de Serviços de Localização para ler o SSID.
+const REDACTED_MARKERS = ['<redacted>', 'redacted']
 
 export type NetworkDetails = {
   ip: string
   network: string
+  /** Nome bruto da interface (en0, Wi-Fi, wlan0...) usado internamente. */
+  interfaceName: string
+  /** SSID real, quando o SO permite ler. `null` = indisponível (sem permissão / cabo). */
+  ssid: string | null
 }
 
-export function getNetworkIp(): string {
-  const ifaces = os.networkInterfaces()
-  let fallbackIp = '127.0.0.1'
+type SsidCache = { value: string | null; at: number }
 
-  for (const name of Object.keys(ifaces)) {
-    if (VIRTUAL_PREFIXES.some(prefix => name.toLowerCase().includes(prefix))) continue
+let ssidCache: SsidCache | null = null
+let lastDetails: NetworkDetails | null = null
 
-    for (const iface of ifaces[name] || []) {
-      if (iface.family !== 'IPv4' || iface.internal) continue
-      if (iface.address.startsWith('192.168.56.')) continue
-
-      if (iface.address.startsWith('192.168.0.') || iface.address.startsWith('192.168.1.')) {
-        return iface.address
-      }
-
-      fallbackIp = iface.address
+/** Executa um binário do sistema sem shell; nunca rejeita, nunca imprime erro. */
+function run(cmd: string, args: string[], timeout = 2000): Promise<string | null> {
+  return new Promise((resolve) => {
+    let settled = false
+    const finish = (value: string | null) => {
+      if (settled) return
+      settled = true
+      resolve(value)
     }
-  }
 
-  return fallbackIp
+    try {
+      const child = execFile(cmd, args, { timeout, killSignal: 'SIGKILL' }, (error, stdout) => {
+        if (error || !stdout) return finish(null)
+        finish(stdout)
+      })
+      child.on('error', () => finish(null))
+    } catch {
+      finish(null)
+    }
+  })
 }
 
-export function getAllNetworkInterfaces(): { name: string; ip: string }[] {
+const isUsableSsid = (value: string | null | undefined): value is string => {
+  if (!value) return false
+  const normalized = value.trim().replace(/^"|"$/g, '')
+  if (!normalized) return false
+  return !REDACTED_MARKERS.some((marker) => normalized.toLowerCase() === marker)
+}
+
+const cleanSsid = (value: string): string => value.trim().replace(/^"|"$/g, '')
+
+// ─────────────────────────── Interfaces IPv4 ───────────────────────────
+
+const isVirtual = (name: string) =>
+  VIRTUAL_PREFIXES.some((prefix) => name.toLowerCase().includes(prefix))
+
+type RawInterface = { name: string; ip: string }
+
+function listUsableInterfaces(): RawInterface[] {
   const ifaces = os.networkInterfaces()
-  const list: { name: string; ip: string }[] = []
+  const list: RawInterface[] = []
 
   for (const name of Object.keys(ifaces)) {
-    if (VIRTUAL_PREFIXES.some((prefix) => name.toLowerCase().includes(prefix))) continue
+    if (isVirtual(name)) continue
 
     for (const iface of ifaces[name] || []) {
       if (iface.family !== 'IPv4' || iface.internal) continue
-      if (iface.address.startsWith('192.168.56.')) continue // VirtualBox fallback ignore
+      if (iface.address.startsWith('192.168.56.')) continue // VirtualBox host-only
+      if (iface.address.startsWith('169.254.')) continue // link-local (sem DHCP)
       list.push({ name, ip: iface.address })
     }
   }
@@ -60,102 +82,178 @@ export function getAllNetworkInterfaces(): { name: string; ip: string }[] {
   return list
 }
 
-function getNetworkInterfaceName(): string {
-  const ifaces = os.networkInterfaces()
-  let fallbackName = 'Rede Local'
+/** Interface "principal": prioriza faixas domésticas/institucionais comuns. */
+function pickPrimaryInterface(): RawInterface | null {
+  const list = listUsableInterfaces()
+  if (list.length === 0) return null
 
-  for (const name of Object.keys(ifaces)) {
-    if (VIRTUAL_PREFIXES.some(prefix => name.toLowerCase().includes(prefix))) continue
+  const preferred = list.find(
+    (item) => item.ip.startsWith('192.168.0.') || item.ip.startsWith('192.168.1.')
+  )
 
-    for (const iface of ifaces[name] || []) {
-      if (iface.family !== 'IPv4' || iface.internal) continue
-      if (iface.address.startsWith('192.168.56.')) continue
-
-      if (iface.address.startsWith('192.168.0.') || iface.address.startsWith('192.168.1.')) {
-        return name
-      }
-
-      fallbackName = name
-    }
-  }
-
-  return fallbackName
+  return preferred ?? list[0]
 }
 
-function getSSID(): Promise<string | null> {
-  return new Promise((resolve) => {
-    const safetyTimeout = setTimeout(() => resolve(null), 2500)
-    const done = (val: string | null) => {
-      clearTimeout(safetyTimeout)
-      resolve(val)
-    }
-
-    if (process.platform === 'darwin') {
-      // Revertendo para usar o binário `airport -I` (caminho conhecido) como antes
-      const airportPath = '/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport'
-      exec(`${airportPath} -I`, { timeout: 1800 }, (err, stdout) => {
-        clearTimeout(safetyTimeout)
-        if (err || !stdout) return done(null)
-        const match = stdout.match(/^\s*SSID:\s*(.+)$/m)
-        return done(match ? match[1].trim() : null)
-      })
-      return
-    }
-
-    if (process.platform === 'win32') {
-      exec('netsh wlan show interfaces', { timeout: 1800 }, (error, stdout) => {
-        if (error || !stdout) return done(null)
-        const match = stdout.match(/^\s*SSID\s*:\s*(.+)$/m)
-        done(match ? match[1].trim() : null)
-      })
-      return
-    }
-
-    // Linux: tenta nmcli, iwgetid e iw em sequência
-    exec('nmcli -t -f active,ssid dev wifi', { timeout: 1800 }, (err, stdout) => {
-      if (!err && stdout) {
-        // formato: "yes:MinhaRede" ou "sim:MinhaRede" dependendo do locale
-        const match = stdout.match(/^(?:yes|sim):(.+)$/im)
-        if (match?.[1]?.trim()) return done(match[1].trim())
-      }
-
-      exec('iwgetid -r', { timeout: 1800 }, (err2, stdout2) => {
-        if (!err2 && stdout2?.trim()) return done(stdout2.trim())
-
-        // iw como último recurso (precisa de permissão em algumas distros)
-        exec('iw dev', { timeout: 1800 }, (err3, stdout3) => {
-          if (err3 || !stdout3) return done(null)
-
-          const iface = stdout3.match(/Interface\s+(\S+)/)?.[1]
-          if (!iface) return done(null)
-
-          exec(`iw ${iface} link`, { timeout: 1800 }, (_err4, stdout4) => {
-            const match4 = stdout4?.match(/SSID:\s*(.+)/i)
-            done(match4?.[1]?.trim() ?? null)
-          })
-        })
-      })
-    })
-  })
+export function getNetworkIp(): string {
+  return pickPrimaryInterface()?.ip ?? '127.0.0.1'
 }
 
-export async function getNetworkDetails(force = false): Promise<NetworkDetails> {
-  const now = Date.now()
-
-  if (!force && networkCache && now - networkCache.cachedAt < CACHE_TTL_MS) {
-    return networkCache
-  }
-
-  const ip = getNetworkIp()
-  const ssid = await getSSID()
-  const network = ssid ?? getNetworkInterfaceName()
-
-  networkCache = {
+export function getAllNetworkInterfaces(): { name: string; ip: string }[] {
+  return listUsableInterfaces().map(({ name, ip }) => ({
+    name: friendlyInterfaceName(name),
     ip,
-    network,
-    cachedAt: now,
-  }
-
-  return networkCache
+  }))
 }
 
+/**
+ * Assinatura barata do estado da rede (sem spawn de processos).
+ * Serve para detectar troca de rede/IP a cada tick sem custo.
+ */
+export function getInterfaceSignature(): string {
+  return listUsableInterfaces()
+    .map(({ name, ip }) => `${name}=${ip}`)
+    .sort()
+    .join('|')
+}
+
+// ─────────────────────────── macOS ───────────────────────────
+
+/** device (en0) -> nome amigável ("Wi-Fi", "Ethernet"), preenchido no macOS. */
+let macHardwarePorts: Map<string, string> | null = null
+let macWifiDevice: string | null = null
+
+async function loadMacHardwarePorts(): Promise<void> {
+  if (macHardwarePorts) return
+
+  macHardwarePorts = new Map()
+  const stdout = await run('/usr/sbin/networksetup', ['-listallhardwareports'], 3000)
+  if (!stdout) return
+
+  const blocks = stdout.split(/\n\s*\n/)
+  for (const block of blocks) {
+    const port = block.match(/^Hardware Port:\s*(.+)$/m)?.[1]?.trim()
+    const device = block.match(/^Device:\s*(.+)$/m)?.[1]?.trim()
+    if (!port || !device) continue
+
+    macHardwarePorts.set(device, port)
+    if (!macWifiDevice && /wi-?fi|airport/i.test(port)) macWifiDevice = device
+  }
+}
+
+/**
+ * SSID no macOS moderno (13+).
+ *
+ * O binário `airport` foi removido no macOS 14.4, e a partir do Sonoma/Sequoia
+ * o SSID só é revelado a processos autorizados em Serviços de Localização —
+ * caso contrário o sistema devolve `<redacted>` (ipconfig) ou
+ * "You are not associated with an AirPort network." (networksetup).
+ * Tentamos as fontes em ordem e devolvemos `null` silenciosamente se nenhuma
+ * puder responder, em vez de propagar erro.
+ */
+async function getMacSsid(): Promise<string | null> {
+  await loadMacHardwarePorts()
+
+  const devices = macWifiDevice ? [macWifiDevice] : ['en0', 'en1']
+
+  for (const device of devices) {
+    // 1) ipconfig getsummary — fonte mais rápida e disponível
+    const summary = await run('/usr/sbin/ipconfig', ['getsummary', device], 2000)
+    const fromSummary = summary?.match(/^\s*SSID\s*:\s*(.+)$/m)?.[1]
+    if (isUsableSsid(fromSummary)) return cleanSsid(fromSummary)
+
+    // 2) networksetup — funciona quando o app tem permissão de Localização
+    const airport = await run('/usr/sbin/networksetup', ['-getairportnetwork', device], 2500)
+    const fromAirport = airport?.match(/^Current [^:]*Network:\s*(.+)$/m)?.[1]
+    if (isUsableSsid(fromAirport)) return cleanSsid(fromAirport)
+  }
+
+  return null
+}
+
+// ─────────────────────────── Windows / Linux ───────────────────────────
+
+async function getWindowsSsid(): Promise<string | null> {
+  const stdout = await run('netsh', ['wlan', 'show', 'interfaces'], 2500)
+  const match = stdout?.match(/^\s*SSID\s*:\s*(.+)$/m)?.[1]
+  return isUsableSsid(match) ? cleanSsid(match) : null
+}
+
+async function getLinuxSsid(): Promise<string | null> {
+  const nmcli = await run('nmcli', ['-t', '-f', 'active,ssid', 'dev', 'wifi'], 2500)
+  const fromNmcli = nmcli?.match(/^(?:yes|sim):(.+)$/im)?.[1]
+  if (isUsableSsid(fromNmcli)) return cleanSsid(fromNmcli)
+
+  const iwgetid = await run('iwgetid', ['-r'], 2000)
+  if (isUsableSsid(iwgetid)) return cleanSsid(iwgetid)
+
+  const iwDev = await run('iw', ['dev'], 2000)
+  const iface = iwDev?.match(/Interface\s+(\S+)/)?.[1]
+  if (!iface) return null
+
+  const link = await run('iw', [iface, 'link'], 2000)
+  const fromIw = link?.match(/SSID:\s*(.+)/i)?.[1]
+  return isUsableSsid(fromIw) ? cleanSsid(fromIw) : null
+}
+
+async function getSsid(): Promise<string | null> {
+  if (process.platform === 'darwin') return getMacSsid()
+  if (process.platform === 'win32') return getWindowsSsid()
+  return getLinuxSsid()
+}
+
+// ─────────────────────────── Nomes amigáveis ───────────────────────────
+
+function friendlyInterfaceName(rawName: string): string {
+  if (process.platform === 'darwin') {
+    const port = macHardwarePorts?.get(rawName)
+    if (port) return port
+  }
+  return rawName
+}
+
+// ─────────────────────────── API pública ───────────────────────────
+
+/**
+ * Detalhes da rede atual.
+ *
+ * `force` invalida apenas o cache de SSID (a leitura de IP já é barata e sempre
+ * feita na hora). Sem `force`, o SSID é reaproveitado por {@link SSID_TTL_MS},
+ * evitando um spawn de processo a cada tick do monitor de rede.
+ */
+export async function getNetworkDetails(force = false): Promise<NetworkDetails> {
+  if (process.platform === 'darwin') await loadMacHardwarePorts()
+
+  const primary = pickPrimaryInterface()
+  const ip = primary?.ip ?? '127.0.0.1'
+  const interfaceName = primary?.name ?? 'lo'
+
+  const now = Date.now()
+  const cacheValid = !force && ssidCache !== null && now - ssidCache.at < SSID_TTL_MS
+
+  let ssid: string | null
+  if (cacheValid) {
+    ssid = ssidCache!.value
+  } else {
+    ssid = await getSsid()
+    ssidCache = { value: ssid, at: now }
+  }
+
+  const details: NetworkDetails = {
+    ip,
+    interfaceName,
+    ssid,
+    network: ssid ?? friendlyInterfaceName(interfaceName),
+  }
+
+  lastDetails = details
+  return details
+}
+
+export function getLastNetworkDetails(): NetworkDetails | null {
+  return lastDetails
+}
+
+/** Invalida o cache de SSID — use ao detectar troca de interface/IP. */
+export function invalidateSsidCache(): void {
+  ssidCache = null
+}

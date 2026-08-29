@@ -1,6 +1,6 @@
 {
   "name": "view-sync-root",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "private": true,
   "workspaces": [
     "apps/*",
@@ -12,17 +12,22 @@
     "dev:normal": "cross-env VITE_APP_MODE=normal NEXT_PUBLIC_APP_MODE=normal npm run dev --workspace=view-sync-desktop",
     "build:all": "npm run build --workspaces",
     "build": "npm run build --workspace=view-sync-desktop",
-    "build:inst:win": "cross-env VITE_APP_MODE=institutional NEXT_PUBLIC_APP_MODE=institutional npm run build:win --workspace=view-sync-desktop",
-    "build:normal:win": "cross-env VITE_APP_MODE=normal NEXT_PUBLIC_APP_MODE=normal npm run build:win --workspace=view-sync-desktop",
-    "build:inst:mac": "cross-env VITE_APP_MODE=institutional NEXT_PUBLIC_APP_MODE=institutional npm run build:mac --workspace=view-sync-desktop",
-    "build:normal:mac": "cross-env VITE_APP_MODE=normal NEXT_PUBLIC_APP_MODE=normal npm run build:mac --workspace=view-sync-desktop",
-    "build:inst:mac:arm64": "cross-env VITE_APP_MODE=institutional NEXT_PUBLIC_APP_MODE=institutional npm run build:mac:arm64 --workspace=view-sync-desktop",
-    "build:normal:mac:arm64": "cross-env VITE_APP_MODE=normal NEXT_PUBLIC_APP_MODE=normal npm run build:mac:arm64 --workspace=view-sync-desktop",
+    "build:inst:win": "cross-env VITE_APP_MODE=institutional NEXT_PUBLIC_APP_MODE=institutional APP_VARIANT=Institucional npm run build:win --workspace=view-sync-desktop",
+    "build:normal:win": "cross-env VITE_APP_MODE=normal NEXT_PUBLIC_APP_MODE=normal APP_VARIANT=Padrao npm run build:win --workspace=view-sync-desktop",
+    "build:inst:mac": "cross-env VITE_APP_MODE=institutional NEXT_PUBLIC_APP_MODE=institutional APP_VARIANT=Institucional npm run build:mac --workspace=view-sync-desktop",
+    "build:normal:mac": "cross-env VITE_APP_MODE=normal NEXT_PUBLIC_APP_MODE=normal APP_VARIANT=Padrao npm run build:mac --workspace=view-sync-desktop",
+    "build:inst:mac:arm64": "cross-env VITE_APP_MODE=institutional NEXT_PUBLIC_APP_MODE=institutional APP_VARIANT=Institucional npm run build:mac:arm64 --workspace=view-sync-desktop",
+    "build:normal:mac:arm64": "cross-env VITE_APP_MODE=normal NEXT_PUBLIC_APP_MODE=normal APP_VARIANT=Padrao npm run build:mac:arm64 --workspace=view-sync-desktop",
     "build:linux": "npm run build:linux --workspace=view-sync-desktop",
     "check:docs": "node scripts/check-docs-sync.mjs",
     "version:patch": "npm version patch --workspaces --include-workspace-root --no-git-tag-version",
     "version:minor": "npm version minor --workspaces --include-workspace-root --no-git-tag-version",
-    "version:major": "npm version major --workspaces --include-workspace-root --no-git-tag-version"
+    "version:major": "npm version major --workspaces --include-workspace-root --no-git-tag-version",
+    "build:inst:mac:x64": "cross-env VITE_APP_MODE=institutional NEXT_PUBLIC_APP_MODE=institutional APP_VARIANT=Institucional npm run build:mac:x64 --workspace=view-sync-desktop",
+    "build:normal:mac:x64": "cross-env VITE_APP_MODE=normal NEXT_PUBLIC_APP_MODE=normal APP_VARIANT=Padrao npm run build:mac:x64 --workspace=view-sync-desktop",
+    "sign:adhoc:mac": "codesign --force --deep --sign - --options runtime --entitlements apps/desktop-transmissor/build/entitlements.mac.plist apps/desktop-transmissor/release/mac-arm64/LanView.app",
+    "build:inst:mac:fast": "cross-env VITE_APP_MODE=institutional NEXT_PUBLIC_APP_MODE=institutional APP_VARIANT=Institucional CSC_IDENTITY_AUTO_DISCOVERY=false npm run build:mac:arm64:dir --workspace=view-sync-desktop && npm run sign:adhoc:mac",
+    "build:normal:mac:fast": "cross-env VITE_APP_MODE=normal NEXT_PUBLIC_APP_MODE=normal APP_VARIANT=Padrao CSC_IDENTITY_AUTO_DISCOVERY=false npm run build:mac:arm64:dir --workspace=view-sync-desktop && npm run sign:adhoc:mac"
   },
   "optionalDependencies": {
     "lightningcss-darwin-arm64": "1.32.0",

@@ -22,9 +22,13 @@ export const TransmissorPage = () => {
     setStreamReport,
     onStartStream,
     onStopStream,
+    setPrivacyShield,
     onSetNetwork,
     password,
     roomState,
+    screenAccess,
+    requestScreenAccess,
+    restartApp,
     selectedSource,
     serverIp,
     serverPort,
@@ -84,6 +88,7 @@ export const TransmissorPage = () => {
               videoRef={videoRef}
               onCopyUrl={copyUrl}
               onSelectSource={setSelectedSource}
+              onPrivacyShield={setPrivacyShield}
             />
           ) : (
             <div className="flex gap-6 items-start">
@@ -92,6 +97,9 @@ export const TransmissorPage = () => {
                   sources={sources}
                   selectedSource={selectedSource}
                   onSelectSource={setSelectedSource}
+                  screenAccess={screenAccess}
+                  onRequestScreenAccess={requestScreenAccess}
+                  onRestartApp={restartApp}
                 />
               </div>
               
@@ -163,7 +171,7 @@ export const TransmissorPage = () => {
           fontFamily: 'var(--font-mono)',
         }}
       >
-        © 2026 ViewSync Studio &bull; by Kellviny
+        © 2026 ViewSync &bull; by Kellviny
       </footer>
     </div>
   )

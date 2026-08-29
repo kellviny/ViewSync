@@ -16,6 +16,7 @@ export type SignalingPort = {
 
   hostStartStream: (config: StreamConfig, password: string) => Promise<{ adminToken: string }>
   hostStopStream: () => void
+  requestServerInfo?: () => void
   hostSetNetwork?: (ip: string, network: string) => void
   onStreamReport?: (cb: (report: any) => void) => () => void
   dispose: () => void

@@ -1,3 +1,10 @@
+export type ScreenAccessStatus =
+  | 'granted'
+  | 'denied'
+  | 'restricted'
+  | 'not-determined'
+  | 'unknown'
+
 declare global {
   interface Window {
     mirrorAPI?: {
@@ -9,6 +16,9 @@ declare global {
         }>
       >
       getNetworkInfo?: () => Promise<unknown>
+      getScreenAccessStatus?: () => Promise<ScreenAccessStatus>
+      requestScreenAccess?: (openSettings: boolean) => Promise<ScreenAccessStatus>
+      restartApp?: () => Promise<void>
     }
     ipcRenderer?: {
       on: (channel: string, listener: (...args: any[]) => void) => unknown

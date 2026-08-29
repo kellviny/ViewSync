@@ -64,6 +64,10 @@ export const createSocketIoSignalingClient = (url: string): SignalingPort => {
     socket.emit('host:stop_stream')
   }
 
+  const requestServerInfo: SignalingPort['requestServerInfo'] = () => {
+    socket.emit('host:request_info')
+  }
+
   const hostSetNetwork: SignalingPort['hostSetNetwork'] = (ip, network) => {
     socket.emit('host:set_network', { ip, network })
   }
@@ -91,6 +95,7 @@ export const createSocketIoSignalingClient = (url: string): SignalingPort => {
     produce,
     hostStartStream,
     hostStopStream,
+    requestServerInfo,
     hostSetNetwork,
     onStreamReport,
     dispose,

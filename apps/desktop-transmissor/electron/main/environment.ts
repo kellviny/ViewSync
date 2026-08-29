@@ -3,11 +3,28 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
 export const configureAppFlags = (): void => {
-  app.disableHardwareAcceleration()
-  app.commandLine.appendSwitch('disable-gpu')
-  app.commandLine.appendSwitch('disable-software-rasterizer')
+  const isMac = process.platform === 'darwin'
+
+  // No Windows/Linux a aceleração de hardware causava artefatos e travas na
+  // captura de tela. No macOS ela é justamente o que habilita o encode por
+  // VideoToolbox — desligá-la derruba o FPS e deixa a captura instável, então
+  // aqui ela permanece ligada.
+  if (!isMac) {
+    app.disableHardwareAcceleration()
+    app.commandLine.appendSwitch('disable-gpu')
+    app.commandLine.appendSwitch('disable-software-rasterizer')
+  }
+
   app.commandLine.appendSwitch('enable-features', 'DesktopCaptureExtensions')
-  app.commandLine.appendSwitch('disable-features', 'WebRtcAllowWgcScreenCapturer,WebRtcAllowWgcWindowCapturer,WebRtcAllowWgcCapturer')
+
+  // Windows Graphics Capture: flags exclusivas do Windows.
+  if (process.platform === 'win32') {
+    app.commandLine.appendSwitch(
+      'disable-features',
+      'WebRtcAllowWgcScreenCapturer,WebRtcAllowWgcWindowCapturer,WebRtcAllowWgcCapturer'
+    )
+  }
+
   app.commandLine.appendSwitch('log-level', '3')
   process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
 }

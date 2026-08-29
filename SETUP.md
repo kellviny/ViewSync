@@ -104,8 +104,8 @@ npm run build:inst:win
 ```
 
 📁 **Arquivos gerados em `apps/desktop-transmissor/release/`:**
-* **`LanView-Setup-1.1.3-win-x64.exe`**: Instalador clássico do Windows com atalhos na Área de Trabalho e Menu Iniciar.
-* **`LanView-Portable-1.1.3-win-x64.exe`**: Versão portátil autossuficiente (basta dar dois cliques para rodar, não precisa instalar).
+* **`LanView-Setup-1.1.4-win-x64.exe`**: Instalador clássico do Windows com atalhos na Área de Trabalho e Menu Iniciar.
+* **`LanView-Portable-1.1.4-win-x64.exe`**: Versão portátil autossuficiente (basta dar dois cliques para rodar, não precisa instalar).
 * **`win-unpacked/LanView.exe`**: Versão descompactada para testes imediatos.
 
 ---
@@ -121,13 +121,67 @@ npm run build:normal:mac:arm64
 npm run build:inst:mac:arm64
 
 # Para Macs com processador Intel (x64)
-npm run build:normal:mac
+npm run build:normal:mac:x64
 # ou modo institucional:
-npm run build:inst:mac
+npm run build:inst:mac:x64
 ```
 
 📁 **Arquivos gerados em `apps/desktop-transmissor/release/`:**
-* **`LanView-1.1.3-mac-arm64.dmg`** (ou `.dmg` para x64): Imagem de disco padrão do macOS com suporte a arrastar para a pasta *Applications*.
+* **`LanView-Padrao-1.1.4-mac-arm64.dmg`** / **`LanView-Institucional-1.1.4-mac-arm64.dmg`**: imagem de disco padrão do macOS com suporte a arrastar para a pasta *Applications*.
+
+> As variantes institucional e padrão passaram a ter nomes distintos (via
+> `APP_VARIANT`), então gerar as duas em sequência não sobrescreve mais o DMG
+> anterior.
+
+#### 🔐 Permissões exigidas pelo macOS
+
+O macOS não aplica as permissões abaixo ao processo que já está em execução —
+esse é o motivo do app precisar ser fechado e reaberto na primeira vez. O
+LanView agora observa a concessão e **se reinicia sozinho** quando ela chega.
+
+* **Gravação de Tela** — Ajustes do Sistema › Privacidade e Segurança › Gravação de Tela.
+* **Rede Local** (macOS 15+) — Ajustes do Sistema › Privacidade e Segurança › Rede Local.
+
+#### 📶 Nome da rede (SSID)
+
+`airport` foi removido no macOS 14.4 e o SSID passou a exigir autorização de
+**Serviços de Localização**; sem ela o sistema devolve `<redacted>`. A detecção
+tenta `ipconfig getsummary` e `networksetup -getairportnetwork` e, se ambas
+forem bloqueadas, mostra o nome amigável da porta de hardware (**Wi-Fi**,
+**Ethernet**) em vez de `en0`. A detecção de **troca de rede** não depende do
+SSID: ela compara os IPs das interfaces a cada 2s.
+
+#### 💻 Instalando o DMG em outro Mac
+
+O identificador do app é **`com.kellviny.viewsync`** — ele aparece nos comandos
+abaixo e é como o macOS registra a permissão de tela.
+
+DMGs gerados sem certificado **Developer ID** (incluindo os do GitHub Actions)
+são bloqueados pelo Gatekeeper. Depois de arrastar o app para *Aplicativos*:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/LanView.app
+```
+
+**Se a máquina já tinha uma versão anterior**, a ordem importa. Assinaturas
+diferentes com o mesmo identificador disputam a mesma linha em Ajustes, e o
+`tccutil` só resolve o identificador se o app existir em disco:
+
+1. Apague a versão antiga: `rm -rf /Applications/LanView.app`
+2. Instale a nova a partir do DMG.
+3. Limpe a permissão antiga: `tccutil reset ScreenCapture com.kellviny.viewsync`
+4. Abra o app, autorize em *Ajustes do Sistema › Privacidade e Segurança ›
+   Gravação de Tela* e deixe que ele se reinicie sozinho.
+
+> Trocar o `appId` faz o macOS tratar o app como novo: todas as máquinas
+> precisam autorizar de novo. Por isso ele deve ser definido antes da
+> distribuição, e não depois.
+
+#### ☁️ Build pelo GitHub Actions
+
+`.github/workflows/build-mac.yml` gera os DMGs em runners macOS — dispara
+automaticamente em tags `v*` ou manualmente em **Actions › Build macOS Releases
+› Run workflow**, onde é possível escolher a variante e incluir o build Intel.
 
 ---
 
@@ -140,8 +194,8 @@ npm run build:linux
 ```
 
 📁 **Arquivos gerados em `apps/desktop-transmissor/release/`:**
-* **`LanView-1.1.3-x86_64.AppImage`**: Executável universal compatível com qualquer distribuição Linux.
-* **`lanview_1.1.3_amd64.deb`**: Pacote de instalação para Debian, Ubuntu, Linux Mint, etc.
+* **`LanView-1.1.4-x86_64.AppImage`**: Executável universal compatível com qualquer distribuição Linux.
+* **`lanview_1.1.4_amd64.deb`**: Pacote de instalação para Debian, Ubuntu, Linux Mint, etc.
 
 ---
 
@@ -180,7 +234,8 @@ npm run build:linux
 | `npm run dev:inst` | Inicia em modo de desenvolvimento com tema institucional |
 | `npm run build:normal:win` | Gera os executáveis para Windows (`Setup.exe` e `Portable.exe`) |
 | `npm run build:normal:mac:arm64` | Gera o `.dmg` para macOS Apple Silicon |
-| `npm run build:normal:mac` | Gera o `.dmg` para macOS Intel |
+| `npm run build:normal:mac:x64` | Gera o `.dmg` para macOS Intel |
+| `npm run build:inst:mac:arm64` | Gera o `.dmg` institucional para macOS Apple Silicon |
 | `npm run build:linux` | Gera `.AppImage` e `.deb` para Linux |
 | `npm run typecheck --workspace=view-sync-desktop` | Valida todos os tipos TypeScript |
 

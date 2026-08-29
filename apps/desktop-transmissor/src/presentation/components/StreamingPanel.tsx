@@ -25,6 +25,7 @@ export const StreamingPanel = ({
   videoRef,
   onCopyUrl,
   onSelectSource,
+  onPrivacyShield,
 }: {
   copied: boolean
   fps: number
@@ -39,12 +40,18 @@ export const StreamingPanel = ({
   videoRef: RefObject<HTMLVideoElement | null>
   onCopyUrl: () => void
   onSelectSource: (sourceId: string) => void
+  onPrivacyShield?: (enabled: boolean) => void
 }) => {
   const [isAudienceModalOpen, setIsAudienceModalOpen] = useState(false)
   const [isAdminQrModalOpen, setIsAdminQrModalOpen] = useState(false)
   const [isStudentQrModalOpen, setIsStudentQrModalOpen] = useState(false)
 
   const handleSetAdminQrModalOpen = (open: boolean) => {
+    // O link de admin carrega o token da sala. Enquanto o QR estiver na tela,
+    // a transmissão vai para uma tela de espera — setContentProtection sozinho
+    // não cobre a captura de tela cheia, que é por onde o QR vazava.
+    onPrivacyShield?.(open)
+
     setIsAdminQrModalOpen(open)
     if (typeof window !== 'undefined' && (window as any).ipcRenderer?.invoke) {
       (window as any).ipcRenderer.invoke('set-content-protection', open).catch(() => {})

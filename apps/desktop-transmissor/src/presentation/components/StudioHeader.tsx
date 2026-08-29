@@ -50,7 +50,7 @@ export const StudioHeader = ({
         </div>
         <div>
           <h1 className="text-sm font-bold leading-none tracking-tight text-white">
-            ViewSync <span className="font-light" style={{ color: 'var(--vs-neon)' }}>Studio</span>
+            ViewSync
           </h1>
         </div>
       </div>

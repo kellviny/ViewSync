@@ -1,22 +1,24 @@
 {
   "name": "view-sync-desktop",
   "private": true,
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "ViewSync - Transmissor de Tela",
   "author": "Kellviny",
   "scripts": {
     "dev": "vite",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
     "build": "cd ../viewer-web && npm run build && cd ../desktop-transmissor && tsc && vite build && electron-builder",
     "build:win": "cd ../viewer-web && npm run build && cd ../desktop-transmissor && tsc && vite build && electron-builder --win",
     "build:mac": "cd ../viewer-web && npm run build && cd ../desktop-transmissor && tsc && vite build && electron-builder --mac",
-    "build:mac:arm64": "cd ../viewer-web && npm run build && cd ../desktop-transmissor && tsc && vite build && electron-rebuild --arch=arm64 && electron-builder --mac --arm64",
+    "build:mac:arm64": "cd ../viewer-web && npm run build && cd ../desktop-transmissor && tsc && vite build && electron-rebuild -f -w mediasoup --arch=arm64 && electron-builder --mac dmg --arm64",
     "build:linux": "cd ../viewer-web && npm run build && cd ../desktop-transmissor && tsc && vite build && electron-builder --linux",
     "rebuild": "npm run rebuild:native",
     "rebuild:native": "electron-rebuild -f -w mediasoup",
     "clean:native": "node -e \"require('fs').rmSync('node_modules/mediasoup/worker/out', { recursive: true, force: true })\" && npm run rebuild:native",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:mac:x64": "cd ../viewer-web && npm run build && cd ../desktop-transmissor && tsc && vite build && electron-rebuild -f -w mediasoup --arch=x64 && electron-builder --mac dmg --x64",
+    "build:mac:arm64:dir": "cd ../viewer-web && npm run build && cd ../desktop-transmissor && tsc && vite build && electron-builder --mac --arm64 --dir"
   },
   "dependencies": {
     "@fontsource/fira-code": "^5.2.7",
@@ -53,7 +55,7 @@
   },
   "main": "dist-electron/main.js",
   "build": {
-    "appId": "com.professoriallen.lanview",
+    "appId": "com.kellviny.viewsync",
     "productName": "LanView",
     "electronVersion": "30.0.1",
     "directories": {
@@ -63,11 +65,15 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         },
         {
           "target": "portable",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "public/ico.ico"
@@ -85,9 +91,15 @@
       "artifactName": "${productName}-Portable-${version}-win-${arch}.${ext}"
     },
     "mac": {
-      "artifactName": "${productName}-${version}-mac-${arch}.${ext}",
+      "artifactName": "${productName}-${env.APP_VARIANT}-${version}-mac-${arch}.${ext}",
       "target": [
-        { "target": "dmg", "arch": ["arm64"] }
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
       ],
       "icon": "public/ico.icns",
       "category": "public.app-category.education",
@@ -99,8 +111,14 @@
         "NSScreenCaptureUsageDescription": "Este app precisa acessar a captura de tela para transmitir sua tela.",
         "NSMicrophoneUsageDescription": "Este app precisa acessar o microfone para transmitir áudio.",
         "NSCameraUsageDescription": "Este app pode usar a câmera para transmissão de vídeo.",
-        "NSLocalNetworkUsageDescription": "Este app precisa acessar sua rede local para transmitir."
-      }
+        "NSLocalNetworkUsageDescription": "Este app precisa acessar sua rede local para transmitir.",
+        "NSLocationWhenInUseUsageDescription": "O macOS exige permissão de Localização para revelar o nome (SSID) da rede Wi-Fi exibido aos alunos. Nenhuma localização é armazenada ou enviada.",
+        "NSBonjourServices": [
+          "_http._tcp",
+          "_socket._tcp"
+        ]
+      },
+      "notarize": false
     },
     "mas": {
       "target": [
