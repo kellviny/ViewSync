@@ -20,6 +20,32 @@
 
 ---
 
+## 📥 Download dos Instaladores (Releases Oficiais)
+
+Baixe a versão mais recente pronta para uso (gerada automaticamente pelo GitHub Actions):
+
+### 🪟 Windows (x64)
+
+| Versão | Tipo | Link de Download | Descrição |
+|---|---|---|---|
+| **Padrão** | **Instalador (Setup)** | [⬇️ Baixar Setup Padrão](https://github.com/kellviny/ViewSync/releases/latest/download/LanView-Setup-Padrao-1.1.4-win-x64.exe) | Instalador com atalhos na Área de Trabalho e Menu Iniciar |
+| **Padrão** | **Portátil (Portable)** | [⬇️ Baixar Portable Padrão](https://github.com/kellviny/ViewSync/releases/latest/download/LanView-Portable-Padrao-1.1.4-win-x64.exe) | Executável único que roda sem precisar instalar |
+| **Institucional** | **Instalador (Setup)** | [⬇️ Baixar Setup Institucional](https://github.com/kellviny/ViewSync/releases/latest/download/LanView-Setup-Institucional-1.1.4-win-x64.exe) | Instalador com tema e cores institucionais |
+| **Institucional** | **Portátil (Portable)** | [⬇️ Baixar Portable Institucional](https://github.com/kellviny/ViewSync/releases/latest/download/LanView-Portable-Institucional-1.1.4-win-x64.exe) | Versão portátil com tema institucional |
+
+### 🍎 macOS
+
+| Processador | Versão | Link de Download | Observação |
+|---|---|---|---|
+| **Apple Silicon (M1/M2/M3/M4)** | **Padrão** | [⬇️ Baixar DMG Padrão (arm64)](https://github.com/kellviny/ViewSync/releases/latest/download/LanView-Padrao-1.1.4-mac-arm64.dmg) | Imagem de disco (.dmg) para chips M-series |
+| **Apple Silicon (M1/M2/M3/M4)** | **Institucional** | [⬇️ Baixar DMG Institucional (arm64)](https://github.com/kellviny/ViewSync/releases/latest/download/LanView-Institucional-1.1.4-mac-arm64.dmg) | Versão institucional para chips M-series |
+| **Intel (x64)** | **Padrão** | [⬇️ Baixar DMG Padrão (x64)](https://github.com/kellviny/ViewSync/releases/latest/download/LanView-Padrao-1.1.4-mac-x64.dmg) | Imagem de disco (.dmg) para processadores Intel |
+| **Intel (x64)** | **Institucional** | [⬇️ Baixar DMG Institucional (x64)](https://github.com/kellviny/ViewSync/releases/latest/download/LanView-Institucional-1.1.4-mac-x64.dmg) | Versão institucional para processadores Intel |
+
+> 💡 **Todas as Releases:** Acesse [github.com/kellviny/ViewSync/releases](https://github.com/kellviny/ViewSync/releases) para notas de lançamento, histórico e arquivos adicionais.
+
+---
+
 ## 🛠️ Technology Stack
 
 | Layer | Technologies |
