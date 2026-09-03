@@ -43,6 +43,7 @@ Thumbs.db
 .idea
 *.sublime-project
 *.sublime-workspace
+.gemini/
 
 # Mediasoup build files
 worker/out

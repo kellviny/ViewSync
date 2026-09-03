@@ -104,9 +104,11 @@ npm run build:inst:win
 ```
 
 📁 **Arquivos gerados em `apps/desktop-transmissor/release/`:**
-* **`LanView-Setup-1.1.4-win-x64.exe`**: Instalador clássico do Windows com atalhos na Área de Trabalho e Menu Iniciar.
-* **`LanView-Portable-1.1.4-win-x64.exe`**: Versão portátil autossuficiente (basta dar dois cliques para rodar, não precisa instalar).
+* **`LanView-Setup-Padrao-1.1.4-win-x64.exe`** / **`LanView-Setup-Institucional-1.1.4-win-x64.exe`**: Instalador clássico do Windows com atalhos na Área de Trabalho e Menu Iniciar.
+* **`LanView-Portable-Padrao-1.1.4-win-x64.exe`** / **`LanView-Portable-Institucional-1.1.4-win-x64.exe`**: Versão portátil autossuficiente (basta dar dois cliques para rodar, não precisa instalar).
 * **`win-unpacked/LanView.exe`**: Versão descompactada para testes imediatos.
+
+> As variantes institucional e padrão no Windows agora têm nomes distintos (via `APP_VARIANT`), evitando sobrescrita mútua ao gerar ambas. O workflow `.github/workflows/build-windows.yml` gera os executáveis no GitHub Actions em tags `v*` ou manualmente.
 
 ---
 

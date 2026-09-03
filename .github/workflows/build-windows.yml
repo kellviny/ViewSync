@@ -1,0 +1,81 @@
+﻿name: Build Windows Releases
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      variants:
+        description: 'Quais versões gerar'
+        type: choice
+        default: 'both'
+        options:
+          - both
+          - institutional
+          - normal
+
+concurrency:
+  group: build-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Windows x64 (Setup & Portable)
+    runs-on: windows-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Shared Types
+        run: npm run build --workspace=@mirror/shared-types
+
+      # O worker nativo do Mediasoup é compilado em C++; o cache agiliza o build.
+      - name: Cache Mediasoup worker
+        uses: actions/cache@v4
+        with:
+          path: apps/desktop-transmissor/node_modules/mediasoup/worker/out
+          key: mediasoup-win-x64-${{ hashFiles('package-lock.json') }}
+
+      - name: Build Institucional
+        if: github.event_name != 'workflow_dispatch' || inputs.variants != 'normal'
+        run: npm run build:inst:win
+
+      - name: Build Padrão
+        if: github.event_name != 'workflow_dispatch' || inputs.variants != 'institutional'
+        run: npm run build:normal:win
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64-releases
+          path: apps/desktop-transmissor/release/*.exe
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publicar no Release (somente em tags)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: apps/desktop-transmissor/release/*.exe
+          draft: true
+          fail_on_unmatched_files: true

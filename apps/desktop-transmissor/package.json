@@ -85,10 +85,10 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "LanView",
-      "artifactName": "${productName}-Setup-${version}-win-${arch}.${ext}"
+      "artifactName": "${productName}-Setup-${env.APP_VARIANT}-${version}-win-${arch}.${ext}"
     },
     "portable": {
-      "artifactName": "${productName}-Portable-${version}-win-${arch}.${ext}"
+      "artifactName": "${productName}-Portable-${env.APP_VARIANT}-${version}-win-${arch}.${ext}"
     },
     "mac": {
       "artifactName": "${productName}-${env.APP_VARIANT}-${version}-mac-${arch}.${ext}",

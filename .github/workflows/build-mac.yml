@@ -23,6 +23,9 @@ concurrency:
   group: build-mac-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: write
+
 jobs:
   build-mac:
     name: ${{ matrix.label }}

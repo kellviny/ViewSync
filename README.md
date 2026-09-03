@@ -103,8 +103,10 @@ npm run build:normal:win
 npm run build:inst:win
 ```
 Outputs in `apps/desktop-transmissor/release/`:
-- `LanView-Setup-1.1.4-win-x64.exe` (NSIS Installer)
-- `LanView-Portable-1.1.4-win-x64.exe` (Standalone Portable)
+- `LanView-Setup-Padrao-1.1.4-win-x64.exe` / `LanView-Setup-Institucional-1.1.4-win-x64.exe` (NSIS Installer)
+- `LanView-Portable-Padrao-1.1.4-win-x64.exe` / `LanView-Portable-Institucional-1.1.4-win-x64.exe` (Standalone Portable)
+
+O workflow `.github/workflows/build-windows.yml` gera os mesmos executáveis no GitHub Actions — automaticamente em tags `v*` ou manualmente em **Actions › Build Windows Releases › Run workflow** (com opção de escolher a variante).
 
 ### macOS
 
