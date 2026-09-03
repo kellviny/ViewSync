@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'ViewSync — Sala de Aula Digital',
+  title: 'Lan View — Sala de Aula Digital',
   description: 'Sistema premium de transmissão de tela para educação em rede local',
   icons: { icon: '/logo.ico' },
 }

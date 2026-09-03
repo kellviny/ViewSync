@@ -115,11 +115,11 @@ const startServer = async () => {
         res.send(`
           <!DOCTYPE html>
           <html lang="pt-BR">
-          <head><meta charset="UTF-8"><title>ViewSync – Dev Mode</title>
+          <head><meta charset="UTF-8"><title>Lan View – Dev Mode</title>
           <style>body{font-family:monospace;background:#0a0a0f;color:#a0a0b0;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;flex-direction:column;gap:16px;}</style>
           </head>
           <body>
-            <p style="color:#6366F1;font-size:1.2em;font-weight:bold;">ViewSync — Modo Dev</p>
+            <p style="color:#6366F1;font-size:1.2em;font-weight:bold;">Lan View — Modo Dev</p>
             <p>Viewer web não buildado. Rode em outro terminal:</p>
             <pre style="background:#111;padding:12px;border-radius:8px;color:#22D3EE;">cd apps/viewer-web && npm run build</pre>
             <p style="font-size:0.8em;color:#555;">Ou acesse o Next.js diretamente se estiver rodando.</p>

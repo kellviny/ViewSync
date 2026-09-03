@@ -15,10 +15,10 @@ export const ViewerHeader = ({ isConnected, isStreaming, networkName }: {
     <div className="flex items-center gap-2.5">
       <div className="w-7 h-7 rounded-lg flex items-center justify-center font-black text-[11px] text-white"
         style={{ background: 'linear-gradient(135deg, #6366F1, #4338CA)', boxShadow: '0 0 12px rgba(99,102,241,0.5)' }}>
-        Vs
+        LV
       </div>
       <h1 className="text-sm font-bold text-white tracking-tight">
-        ViewSync <span className="font-light" style={{ color: 'var(--vs-neon)' }}>Viewer</span>
+        Lan <span className="font-light" style={{ color: 'var(--vs-neon)' }}>View</span> Viewer
       </h1>
     </div>
 

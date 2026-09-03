@@ -46,11 +46,11 @@ export const StudioHeader = ({
             boxShadow: '0 0 14px rgba(99,102,241,0.5)',
           }}
         >
-          Vs
+          LV
         </div>
         <div>
           <h1 className="text-sm font-bold leading-none tracking-tight text-white">
-            ViewSync
+            Lan <span className="font-light" style={{ color: 'var(--vs-neon)' }}>View</span>
           </h1>
         </div>
       </div>

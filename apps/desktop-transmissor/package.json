@@ -2,7 +2,7 @@
   "name": "view-sync-desktop",
   "private": true,
   "version": "1.1.4",
-  "description": "ViewSync - Transmissor de Tela",
+  "description": "Lan View - Transmissor de Tela",
   "author": "Kellviny",
   "scripts": {
     "dev": "vite",
@@ -55,8 +55,8 @@
   },
   "main": "dist-electron/main.js",
   "build": {
-    "appId": "com.kellviny.viewsync",
-    "productName": "LanView",
+    "appId": "com.kellviny.lanview",
+    "productName": "Lan View",
     "electronVersion": "30.0.1",
     "directories": {
       "output": "release"
@@ -84,14 +84,14 @@
       "allowToChangeInstallationDirectory": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "LanView",
-      "artifactName": "${productName}-Setup-${env.APP_VARIANT}-${version}-win-${arch}.${ext}"
+      "shortcutName": "Lan View",
+      "artifactName": "LanView-Setup-${env.APP_VARIANT}-${version}-win-${arch}.${ext}"
     },
     "portable": {
-      "artifactName": "${productName}-Portable-${env.APP_VARIANT}-${version}-win-${arch}.${ext}"
+      "artifactName": "LanView-Portable-${env.APP_VARIANT}-${version}-win-${arch}.${ext}"
     },
     "mac": {
-      "artifactName": "${productName}-${env.APP_VARIANT}-${version}-mac-${arch}.${ext}",
+      "artifactName": "LanView-${env.APP_VARIANT}-${version}-mac-${arch}.${ext}",
       "target": [
         {
           "target": "dmg",

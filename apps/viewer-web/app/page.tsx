@@ -86,7 +86,7 @@ export default function ViewerPage() {
 
       {!isFullScreen && (
         <footer className="absolute bottom-4 text-[10px] font-bold text-white/40 uppercase tracking-[0.3em] pointer-events-none text-center px-4 w-full">
-          ViewSync SFU &bull; By Kellviny
+          Lan View SFU &bull; By Kellviny
         </footer>
       )}
     </div>

@@ -1,4 +1,4 @@
-# 🚀 Guia de Setup e Build — ViewSync (LanView)
+# 🚀 Guia de Setup e Build — Lan View
 
 Passo a passo completo e prático para configurar o ambiente de desenvolvimento e **gerar os executáveis/instaladores (Build)** no seu computador em qualquer sistema operacional (**Windows**, **macOS** ou **Linux**).
 

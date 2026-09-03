@@ -171,7 +171,7 @@ export const TransmissorPage = () => {
           fontFamily: 'var(--font-mono)',
         }}
       >
-        © 2026 ViewSync &bull; by Kellviny
+        © 2026 Lan View &bull; by Kellviny
       </footer>
     </div>
   )

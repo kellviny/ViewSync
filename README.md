@@ -1,10 +1,10 @@
-# ViewSync (LanView) 🖥️🚀
+# Lan View 🖥️🚀
 
 [![Version](https://img.shields.io/badge/version-1.1.4-blue.svg)](package.json)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 
-**ViewSync (LanView)** is a high-performance, ultra-low latency screen sharing system designed for educational institutions, classrooms, and enterprise environments. It uses a **Selective Forwarding Unit (SFU)** architecture powered by **Mediasoup** to broadcast high-framerate screens within a local network (LAN) from a host presenter to multiple concurrent viewers with zero cloud dependencies.
+**Lan View** is a high-performance, ultra-low latency screen sharing system designed for educational institutions, classrooms, and enterprise environments. It uses a **Selective Forwarding Unit (SFU)** architecture powered by **Mediasoup** to broadcast high-framerate screens within a local network (LAN) from a host presenter to multiple concurrent viewers with zero cloud dependencies.
 
 ---
 

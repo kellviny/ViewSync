@@ -31,7 +31,7 @@ export const ReportModal = ({
 
   const handleDownload = () => {
     const text = `
-RELATÓRIO DE TRANSMISSÃO - VIEWSYNC
+RELATÓRIO DE TRANSMISSÃO - LAN VIEW
 ===================================
 Duração Total: ${formatMs(report.durationMs)}
 Tempo Médio Assistido: ${formatMs(report.averageTimeMs)}

@@ -1,6 +1,6 @@
-# ViewSync — Viewer Web 🌐📱
+# Lan View — Viewer Web 🌐📱
 
-O **Viewer Web** é a aplicação cliente do ViewSync desenvolvida em **Next.js** e **React**. Ela é executada diretamente no navegador dos alunos/espectadores (laptops, celulares, tablets, smart TVs) para receber a transmissão da tela via WebRTC em tempo real com ultrabaixa latência.
+O **Viewer Web** é a aplicação cliente do Lan View desenvolvida em **Next.js** e **React**. Ela é executada diretamente no navegador dos alunos/espectadores (laptops, celulares, tablets, smart TVs) para receber a transmissão da tela via WebRTC em tempo real com ultrabaixa latência.
 
 ---
 

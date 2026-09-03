@@ -1,4 +1,4 @@
-# ViewSync Studio — Transmissor Desktop
+# Lan View — Transmissor Desktop
 
 Aplicação **Electron** usada pelo professor para capturar e transmitir a tela em tempo real via WebRTC/Mediasoup para qualquer navegador na rede local.
 
@@ -8,7 +8,7 @@ Aplicação **Electron** usada pelo professor para capturar e transmitir a tela 
 
 ```
 ┌─────────────────────────────┐       LAN        ┌────────────────────┐
-│   ViewSync Studio (Electron) │ ────────────────► │  Viewer (Browser)  │
+│   Lan View (Electron)       │ ────────────────► │  Viewer (Browser)  │
 │  ┌──────────┐  ┌──────────┐  │                  │  http://<IP>:3001  │
 │  │  React UI │  │ Mediasoup│  │  Socket.IO +     └────────────────────┘
 │  │ (Renderer)│  │  Server  │  │  WebRTC (UDP)
@@ -220,7 +220,7 @@ npm run rebuild:native
 ### ❌ Tela preta ao iniciar a transmissão
 
 **Causa:** Permissões de captura de tela negadas (macOS Catalina+).  
-**Solução:** Ir em *Preferências do Sistema → Privacidade e Segurança → Gravação de Tela* e adicionar o ViewSync Studio.
+**Solução:** Ir em *Preferências do Sistema → Privacidade e Segurança → Gravação de Tela* e autorizar o Lan View.
 
 ### ❌ Viewer não conecta
 
@@ -248,4 +248,4 @@ npm run rebuild:native
 
 ## Autor
 
-Desenvolvido por **Kellviny** · © 2026 ViewSync eii
+Desenvolvido por **Kellviny** · © 2026 Lan View
