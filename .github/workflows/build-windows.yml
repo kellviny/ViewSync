@@ -1,4 +1,4 @@
-﻿name: Build Windows Releases
+name: Build Windows Releases
 
 on:
   push:
@@ -77,5 +77,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: apps/desktop-transmissor/release/*.exe
-          draft: true
+          draft: false
           fail_on_unmatched_files: true
