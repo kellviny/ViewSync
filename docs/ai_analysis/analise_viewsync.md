@@ -199,7 +199,7 @@ Gera um `.dmg` em `release/`
 
 5. **Notarizar com `notarytool`:**
 ```bash
-xcrun notarytool submit release/LanView-1.0.4.dmg \
+xcrun notarytool submit release/ViewSync-1.0.4.dmg \
   --apple-id "seu@email.com" \
   --team-id "TEAM_ID" \
   --password "app-specific-password" \
@@ -208,7 +208,7 @@ xcrun notarytool submit release/LanView-1.0.4.dmg \
 
 6. **Stapling** (gravar o ticket de notarização no arquivo):
 ```bash
-xcrun stapler staple "release/LanView-1.0.4.dmg"
+xcrun stapler staple "release/ViewSync-1.0.4.dmg"
 ```
 
 7. **Distribuir**: o `.dmg` notarizado pode ser distribuído pelo seu site.
@@ -285,7 +285,7 @@ npm run build:win
 
 4. **Assinar o MSIX** com certificado (pode ser autoassinado para teste):
 ```bash
-signtool sign /fd SHA256 /a release/LanView.appx
+signtool sign /fd SHA256 /a release/ViewSync.appx
 ```
 
 5. **Upload no Partner Center** → Apps e jogos → Criar novo app → Enviar pacote

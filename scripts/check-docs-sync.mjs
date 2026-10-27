@@ -49,8 +49,8 @@ checkFile(readmePath, 'README.md', [
   {
     desc: `Nomes dos artefatos de saída devem conter a versão atual (${currentVersion})`,
     test: (c) =>
-      (c.includes(`LanView-Setup-Padrao-${currentVersion}-win-x64.exe`) || c.includes(`LanView-Setup-${currentVersion}-win-x64.exe`)) &&
-      (c.includes(`LanView-Portable-Padrao-${currentVersion}-win-x64.exe`) || c.includes(`LanView-Portable-${currentVersion}-win-x64.exe`)),
+      (c.includes(`ViewSync-Setup-Padrao-${currentVersion}-win-x64.exe`) || c.includes(`LanView-Setup-Padrao-${currentVersion}-win-x64.exe`)) &&
+      (c.includes(`ViewSync-Portable-Padrao-${currentVersion}-win-x64.exe`) || c.includes(`LanView-Portable-Padrao-${currentVersion}-win-x64.exe`)),
   },
 ])
 
@@ -71,8 +71,8 @@ checkFile(setupPath, 'SETUP.md', [
   {
     desc: `Artefatos de release listados devem refletir a versão atual (${currentVersion})`,
     test: (c) =>
-      c.includes(`LanView-Setup-Padrao-${currentVersion}-win-x64.exe`) ||
-      c.includes(`LanView-Setup-${currentVersion}-win-x64.exe`),
+      c.includes(`ViewSync-Setup-Padrao-${currentVersion}-win-x64.exe`) ||
+      c.includes(`LanView-Setup-Padrao-${currentVersion}-win-x64.exe`),
   },
 ])
 

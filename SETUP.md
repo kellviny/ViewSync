@@ -1,4 +1,4 @@
-# 🚀 Guia de Setup e Build — Lan View
+# 🚀 Guia de Setup e Build — ViewSync
 
 Passo a passo completo e prático para configurar o ambiente de desenvolvimento e **gerar os executáveis/instaladores (Build)** no seu computador em qualquer sistema operacional (**Windows**, **macOS** ou **Linux**).
 
@@ -71,7 +71,7 @@ cd ../..
 Você pode rodar toda a aplicação com um único comando na raiz do projeto:
 
 ```bash
-# Modo Padrão (LanView)
+# Modo Padrão (ViewSync)
 npm run dev:normal
 
 # Modo Institucional (Customizado para instituições de ensino)
@@ -104,9 +104,9 @@ npm run build:inst:win
 ```
 
 📁 **Arquivos gerados em `apps/desktop-transmissor/release/`:**
-* **`LanView-Setup-Padrao-1.1.4-win-x64.exe`** / **`LanView-Setup-Institucional-1.1.4-win-x64.exe`**: Instalador clássico do Windows com atalhos na Área de Trabalho e Menu Iniciar.
-* **`LanView-Portable-Padrao-1.1.4-win-x64.exe`** / **`LanView-Portable-Institucional-1.1.4-win-x64.exe`**: Versão portátil autossuficiente (basta dar dois cliques para rodar, não precisa instalar).
-* **`win-unpacked/LanView.exe`**: Versão descompactada para testes imediatos.
+* **`ViewSync-Setup-Padrao-1.1.4-win-x64.exe`** / **`ViewSync-Setup-Institucional-1.1.4-win-x64.exe`**: Instalador clássico do Windows com atalhos na Área de Trabalho e Menu Iniciar.
+* **`ViewSync-Portable-Padrao-1.1.4-win-x64.exe`** / **`ViewSync-Portable-Institucional-1.1.4-win-x64.exe`**: Versão portátil autossuficiente (basta dar dois cliques para rodar, não precisa instalar).
+* **`win-unpacked/ViewSync.exe`**: Versão descompactada para testes imediatos.
 
 > As variantes institucional e padrão no Windows agora têm nomes distintos (via `APP_VARIANT`), evitando sobrescrita mútua ao gerar ambas. O workflow `.github/workflows/build-windows.yml` gera os executáveis no GitHub Actions em tags `v*` ou manualmente.
 
@@ -129,7 +129,7 @@ npm run build:inst:mac:x64
 ```
 
 📁 **Arquivos gerados em `apps/desktop-transmissor/release/`:**
-* **`LanView-Padrao-1.1.4-mac-arm64.dmg`** / **`LanView-Institucional-1.1.4-mac-arm64.dmg`**: imagem de disco padrão do macOS com suporte a arrastar para a pasta *Applications*.
+* **`ViewSync-Padrao-1.1.4-mac-arm64.dmg`** / **`ViewSync-Institucional-1.1.4-mac-arm64.dmg`**: imagem de disco padrão do macOS com suporte a arrastar para a pasta *Applications*.
 
 > As variantes institucional e padrão passaram a ter nomes distintos (via
 > `APP_VARIANT`), então gerar as duas em sequência não sobrescreve mais o DMG
@@ -139,7 +139,7 @@ npm run build:inst:mac:x64
 
 O macOS não aplica as permissões abaixo ao processo que já está em execução —
 esse é o motivo do app precisar ser fechado e reaberto na primeira vez. O
-LanView agora observa a concessão e **se reinicia sozinho** quando ela chega.
+ViewSync agora observa a concessão e **se reinicia sozinho** quando ela chega.
 
 * **Gravação de Tela** — Ajustes do Sistema › Privacidade e Segurança › Gravação de Tela.
 * **Rede Local** (macOS 15+) — Ajustes do Sistema › Privacidade e Segurança › Rede Local.
@@ -162,14 +162,14 @@ DMGs gerados sem certificado **Developer ID** (incluindo os do GitHub Actions)
 são bloqueados pelo Gatekeeper. Depois de arrastar o app para *Aplicativos*:
 
 ```bash
-xattr -dr com.apple.quarantine /Applications/LanView.app
+xattr -dr com.apple.quarantine /Applications/ViewSync.app
 ```
 
 **Se a máquina já tinha uma versão anterior**, a ordem importa. Assinaturas
 diferentes com o mesmo identificador disputam a mesma linha em Ajustes, e o
 `tccutil` só resolve o identificador se o app existir em disco:
 
-1. Apague a versão antiga: `rm -rf /Applications/LanView.app`
+1. Apague a versão antiga: `rm -rf /Applications/ViewSync.app`
 2. Instale a nova a partir do DMG.
 3. Limpe a permissão antiga: `tccutil reset ScreenCapture com.kellviny.viewsync`
 4. Abra o app, autorize em *Ajustes do Sistema › Privacidade e Segurança ›
@@ -196,8 +196,8 @@ npm run build:linux
 ```
 
 📁 **Arquivos gerados em `apps/desktop-transmissor/release/`:**
-* **`LanView-1.1.4-x86_64.AppImage`**: Executável universal compatível com qualquer distribuição Linux.
-* **`lanview_1.1.4_amd64.deb`**: Pacote de instalação para Debian, Ubuntu, Linux Mint, etc.
+* **`ViewSync-1.1.4-x86_64.AppImage`**: Executável universal compatível com qualquer distribuição Linux.
+* **`view-sync-desktop_1.1.4_amd64.deb`**: Pacote de instalação para Debian, Ubuntu, Linux Mint, etc.
 
 ---
 

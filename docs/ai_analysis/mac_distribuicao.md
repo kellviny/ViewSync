@@ -124,7 +124,7 @@ Esse comando:
 ### PASSO 6 — Notarizar o .dmg
 
 ```bash
-xcrun notarytool submit "release/LanView-1.0.4.dmg" \
+xcrun notarytool submit "release/ViewSync-1.0.4.dmg" \
   --apple-id "seu@email.com" \
   --team-id "SEU_TEAM_ID" \
   --password "xxxx-xxxx-xxxx-xxxx" \
@@ -140,7 +140,7 @@ xcrun notarytool submit "release/LanView-1.0.4.dmg" \
 ```
 Successfully uploaded file
   id: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-  path: release/LanView-1.0.4.dmg
+  path: release/ViewSync-1.0.4.dmg
 
 Waiting for processing to complete.
 Current status: Accepted
@@ -160,7 +160,7 @@ Para ver o motivo da rejeição.
 ### PASSO 7 — Staple (gravar o ticket no arquivo)
 
 ```bash
-xcrun stapler staple "release/LanView-1.0.4.dmg"
+xcrun stapler staple "release/ViewSync-1.0.4.dmg"
 ```
 
 Isso grava o ticket de notarização **dentro do .dmg**. Após isso, o Gatekeeper do macOS aceita o app mesmo sem conexão com a internet.
@@ -170,12 +170,12 @@ Isso grava o ticket de notarização **dentro do .dmg**. Após isso, o Gatekeepe
 ### PASSO 8 — Verificar que está tudo certo
 
 ```bash
-spctl --assess --type open --context context:primary-signature -v "release/LanView-1.0.4.dmg"
+spctl --assess --type open --context context:primary-signature -v "release/ViewSync-1.0.4.dmg"
 ```
 
 **Saída esperada:**
 ```
-release/LanView-1.0.4.dmg: accepted
+release/ViewSync-1.0.4.dmg: accepted
 source=Notarized Developer ID
 ```
 

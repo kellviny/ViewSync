@@ -47,9 +47,9 @@ export const SourceSelectionGrid = ({
           <h3 className="text-sm font-bold text-white">Permissão de Gravação de Tela necessária</h3>
         </div>
         <p className="text-xs leading-relaxed" style={{ color: 'var(--vs-text-muted)' }}>
-          O macOS precisa autorizar o LanView a capturar a tela. Autorize em
+          O macOS precisa autorizar o ViewSync a capturar a tela. Autorize em
           <strong> Ajustes do Sistema › Privacidade e Segurança › Gravação de Tela</strong>.
-          Depois de marcar o LanView na lista, use <strong>Reiniciar o app</strong> — o
+          Depois de marcar o ViewSync na lista, use <strong>Reiniciar o app</strong> — o
           macOS não aplica a autorização ao processo que já está aberto.
         </p>
         <div className="flex items-center gap-2">

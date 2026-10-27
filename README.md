@@ -1,10 +1,10 @@
-# Lan View 🖥️🚀
+# ViewSync 🖥️🚀
 
 [![Version](https://img.shields.io/badge/version-1.1.4-blue.svg)](package.json)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 
-**Lan View** is a high-performance, ultra-low latency screen sharing system designed for educational institutions, classrooms, and enterprise environments. It uses a **Selective Forwarding Unit (SFU)** architecture powered by **Mediasoup** to broadcast high-framerate screens within a local network (LAN) from a host presenter to multiple concurrent viewers with zero cloud dependencies.
+**ViewSync** is a high-performance, ultra-low latency screen sharing system designed for educational institutions, classrooms, and enterprise environments. It uses a **Selective Forwarding Unit (SFU)** architecture powered by **Mediasoup** to broadcast high-framerate screens within a local network (LAN) from a host presenter to multiple concurrent viewers with zero cloud dependencies.
 
 ---
 
@@ -129,8 +129,8 @@ npm run build:normal:win
 npm run build:inst:win
 ```
 Outputs in `apps/desktop-transmissor/release/`:
-- `LanView-Setup-Padrao-1.1.4-win-x64.exe` / `LanView-Setup-Institucional-1.1.4-win-x64.exe` (NSIS Installer)
-- `LanView-Portable-Padrao-1.1.4-win-x64.exe` / `LanView-Portable-Institucional-1.1.4-win-x64.exe` (Standalone Portable)
+- `ViewSync-Setup-Padrao-1.1.4-win-x64.exe` / `ViewSync-Setup-Institucional-1.1.4-win-x64.exe` (NSIS Installer)
+- `ViewSync-Portable-Padrao-1.1.4-win-x64.exe` / `ViewSync-Portable-Institucional-1.1.4-win-x64.exe` (Standalone Portable)
 
 O workflow `.github/workflows/build-windows.yml` gera os mesmos executáveis no GitHub Actions — automaticamente em tags `v*` ou manualmente em **Actions › Build Windows Releases › Run workflow** (com opção de escolher a variante).
 
@@ -152,8 +152,8 @@ npm run build:inst:mac:x64
 ```
 
 Saídas em `apps/desktop-transmissor/release/`:
-- `LanView-Institucional-1.1.4-mac-arm64.dmg`
-- `LanView-Padrao-1.1.4-mac-arm64.dmg`
+- `ViewSync-Institucional-1.1.4-mac-arm64.dmg`
+- `ViewSync-Padrao-1.1.4-mac-arm64.dmg`
 
 As duas variantes agora têm nomes distintos (`APP_VARIANT`), então gerar
 institucional e padrão em sequência não sobrescreve mais o DMG anterior.

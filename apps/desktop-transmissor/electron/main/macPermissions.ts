@@ -5,7 +5,7 @@ const SCREEN_SETTINGS_URL =
   'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture'
 
 /** Marca o processo reiniciado por concessão de permissão (evita loop). */
-const RELAUNCH_MARKER = 'LANVIEW_PERMISSION_RELAUNCH'
+const RELAUNCH_MARKER = 'VIEWSYNC_PERMISSION_RELAUNCH'
 
 const isMac = () => process.platform === 'darwin'
 

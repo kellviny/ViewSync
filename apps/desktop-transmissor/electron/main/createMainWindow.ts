@@ -13,7 +13,7 @@ export const createMainWindow = ({
   rendererDist,
 }: CreateMainWindowParams): BrowserWindow => {
   const win = new BrowserWindow({
-    title: 'Lan View',
+    title: 'ViewSync',
     icon: path.join(process.env.VITE_PUBLIC || '', process.platform === 'win32' ? 'ico.ico' : 'ico.icns'),
     width: 1200,
     height: 800,
